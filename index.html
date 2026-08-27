@@ -242,6 +242,66 @@
   }
   .status-strip .bar-fill.over { background: var(--warn); }
 
+  /* Search */
+  .search-bar {
+    position: relative;
+    margin-bottom: 0.9rem;
+  }
+  .search-bar input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.65rem 2.4rem 0.65rem 2.4rem;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .search-bar input:focus { border-color: var(--accent); }
+  .search-bar input::placeholder { color: var(--ink-soft); }
+  .search-bar .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: var(--ink-soft);
+    pointer-events: none;
+  }
+  .search-bar .clear-search {
+    position: absolute;
+    right: 0.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.7rem;
+    height: 1.7rem;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-radius: 999px;
+    font-size: 1.1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .search-bar .clear-search:hover { background: var(--surface-2); color: var(--warn); }
+
+  .item-category-tag {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    margin-bottom: 0.15rem;
+  }
+
   /* Category tabs */
   .category-tabs {
     display: flex;
@@ -321,7 +381,12 @@
     padding: 0.6rem 1rem;
     border-top: 1px solid var(--line);
   }
-  .row .name-input { grid-area: name; }
+  .row .name-cell {
+    grid-area: name;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
   .row .qty-field { grid-area: qty; }
   .row .unit-field { grid-area: unit; }
   .row .line-total { grid-area: total; }
@@ -538,6 +603,12 @@
     <span id="statusPct">0%</span>
   </div>
 
+  <div class="search-bar">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <input type="text" id="searchInput" placeholder="Buscar item em todas as abas..." autocomplete="off">
+    <button type="button" class="clear-search" id="clearSearchBtn" aria-label="Limpar busca" title="Limpar busca" style="display:none">×</button>
+  </div>
+
   <div class="category-tabs" id="categoryTabs"></div>
 
   <div class="list-card">
@@ -549,7 +620,7 @@
       <span></span>
     </div>
     <div id="rows"></div>
-    <div class="add-row">
+    <div class="add-row" id="addRow">
       <button id="addBtn" type="button">+ adicionar item</button>
     </div>
     <div class="list-foot">
@@ -585,6 +656,9 @@
   var syncLabel = document.getElementById('syncLabel');
   var categoryTabsEl = document.getElementById('categoryTabs');
   var themeToggle = document.getElementById('themeToggle');
+  var searchInput = document.getElementById('searchInput');
+  var clearSearchBtn = document.getElementById('clearSearchBtn');
+  var addRowEl = document.getElementById('addRow');
 
   var THEME_KEY = 'lista-mercado-theme';
   var SUN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
@@ -648,6 +722,7 @@
 
   var state = { budget: 0, itemsByCategory: defaultItemsByCategory() };
   var activeCategory = CATEGORIES[0];
+  var searchQuery = '';
   var lastSentJson = null;
   var saveTimer = null;
 
@@ -715,50 +790,85 @@
     });
   }
 
+  function currentQuery() {
+    return searchQuery.trim().toLowerCase();
+  }
+
+  // Em busca: junta itens de todas as categorias que casam com o texto.
+  // Sem busca: só os itens da aba ativa. Cada entrada carrega sua categoria e índice
+  // originais, para editar/remover o item certo mesmo em resultados combinados.
+  function currentEntries(query) {
+    if (query) {
+      var out = [];
+      CATEGORIES.forEach(function (cat) {
+        (state.itemsByCategory[cat] || []).forEach(function (item, idx) {
+          if ((item.name || '').toLowerCase().indexOf(query) !== -1) {
+            out.push({ item: item, cat: cat, idx: idx });
+          }
+        });
+      });
+      return out;
+    }
+    return (state.itemsByCategory[activeCategory] || []).map(function (item, idx) {
+      return { item: item, cat: activeCategory, idx: idx };
+    });
+  }
+
   function render() {
-    renderTabs();
+    var query = currentQuery();
+    categoryTabsEl.style.display = query ? 'none' : '';
+    addRowEl.style.display = query ? 'none' : '';
+    if (!query) renderTabs();
 
     if (document.activeElement !== budgetInput) {
       budgetInput.value = state.budget ? state.budget : '';
     }
     rowsEl.innerHTML = '';
 
-    var items = state.itemsByCategory[activeCategory] || [];
+    var entries = currentEntries(query);
 
-    if (!items.length) {
+    if (!entries.length) {
       var empty = document.createElement('div');
       empty.className = 'empty-state';
-      empty.textContent = 'Nenhum item em "' + activeCategory + '" ainda.';
+      empty.textContent = query
+        ? 'Nenhum item encontrado para "' + searchQuery.trim() + '".'
+        : 'Nenhum item em "' + activeCategory + '" ainda.';
       rowsEl.appendChild(empty);
     }
 
-    items.forEach(function (item, idx) {
+    entries.forEach(function (entry) {
+      var item = entry.item;
+      var list = state.itemsByCategory[entry.cat];
+      var idx = entry.idx;
       var row = document.createElement('div');
       row.className = 'row';
       var lineTotal = (Number(item.qty) || 0) * (Number(item.price) || 0);
       row.innerHTML =
-        '<input type="text" class="name-input" placeholder="Nome do item" value="' + escapeHtml(item.name || '') + '">' +
+        '<div class="name-cell">' +
+          (query ? '<span class="item-category-tag">' + escapeHtml(entry.cat) + '</span>' : '') +
+          '<input type="text" class="name-input" placeholder="Nome do item" value="' + escapeHtml(item.name || '') + '">' +
+        '</div>' +
         '<div class="qty-field"><span class="field-label">Qtd.</span><input type="number" class="qty-input" min="0" step="1" inputmode="numeric" value="' + (item.qty !== '' && item.qty !== undefined ? item.qty : '') + '"></div>' +
         '<div class="unit-field"><span class="field-label">Unit.</span><input type="number" class="price-input" min="0" step="0.01" inputmode="decimal" value="' + (item.price !== '' && item.price !== undefined ? item.price : '') + '"></div>' +
         '<span class="line-total">' + formatBRL(lineTotal) + '</span>' +
         '<button type="button" class="remove" aria-label="Remover item" title="Remover item">×</button>';
 
       row.querySelector('.name-input').addEventListener('input', function (e) {
-        items[idx].name = e.target.value;
+        list[idx].name = e.target.value;
         scheduleSave();
       });
       row.querySelector('.qty-input').addEventListener('input', function (e) {
-        items[idx].qty = e.target.value;
+        list[idx].qty = e.target.value;
         scheduleSave();
         renderTotalsOnly();
       });
       row.querySelector('.price-input').addEventListener('input', function (e) {
-        items[idx].price = e.target.value;
+        list[idx].price = e.target.value;
         scheduleSave();
         renderTotalsOnly();
       });
       row.querySelector('.remove').addEventListener('click', function () {
-        items.splice(idx, 1);
+        list.splice(idx, 1);
         scheduleSave();
         render();
       });
@@ -766,29 +876,27 @@
       rowsEl.appendChild(row);
     });
 
-    updateTotals();
+    updateBalance();
+    updateFooter(query, entries);
   }
 
   // Recalcula só os totais/rótulos sem recriar os inputs, para não perder o foco ao digitar.
   function renderTotalsOnly() {
-    var items = state.itemsByCategory[activeCategory] || [];
+    var query = currentQuery();
+    var entries = currentEntries(query);
     var rowEls = rowsEl.querySelectorAll('.row');
-    items.forEach(function (item, idx) {
-      var lineTotal = (Number(item.qty) || 0) * (Number(item.price) || 0);
-      var totalEl = rowEls[idx] && rowEls[idx].querySelector('.line-total');
+    entries.forEach(function (entry, i) {
+      var lineTotal = (Number(entry.item.qty) || 0) * (Number(entry.item.price) || 0);
+      var totalEl = rowEls[i] && rowEls[i].querySelector('.line-total');
       if (totalEl) totalEl.textContent = formatBRL(lineTotal);
     });
-    renderTabs();
-    updateTotals();
+    if (!query) renderTabs();
+    updateBalance();
+    updateFooter(query, entries);
   }
 
-  function updateTotals() {
-    var subtotal = categoryTotal(activeCategory);
+  function updateBalance() {
     var total = grandTotal();
-
-    footLabel.textContent = 'Subtotal — ' + activeCategory;
-    cartTotal.textContent = formatBRL(subtotal);
-
     var budget = Number(state.budget) || 0;
     var remaining = budget - total;
     var over = remaining < 0;
@@ -803,6 +911,19 @@
     barFill.style.width = pct + '%';
     barFill.className = 'bar-fill' + (over ? ' over' : '');
     statusPct.textContent = Math.round(budget > 0 ? (total / budget) * 100 : 0) + '%';
+  }
+
+  function updateFooter(query, entries) {
+    if (query) {
+      var sum = entries.reduce(function (s, e) {
+        return s + (Number(e.item.qty) || 0) * (Number(e.item.price) || 0);
+      }, 0);
+      footLabel.textContent = entries.length + (entries.length === 1 ? ' resultado' : ' resultados');
+      cartTotal.textContent = formatBRL(sum);
+    } else {
+      footLabel.textContent = 'Subtotal — ' + activeCategory;
+      cartTotal.textContent = formatBRL(categoryTotal(activeCategory));
+    }
   }
 
   function scheduleSave() {
@@ -831,7 +952,28 @@
   budgetInput.addEventListener('input', function (e) {
     state.budget = e.target.value;
     scheduleSave();
-    updateTotals();
+    updateBalance();
+  });
+
+  searchInput.addEventListener('input', function (e) {
+    searchQuery = e.target.value;
+    clearSearchBtn.style.display = searchQuery ? 'flex' : 'none';
+    render();
+  });
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && searchQuery) {
+      searchQuery = '';
+      searchInput.value = '';
+      clearSearchBtn.style.display = 'none';
+      render();
+    }
+  });
+  clearSearchBtn.addEventListener('click', function () {
+    searchQuery = '';
+    searchInput.value = '';
+    clearSearchBtn.style.display = 'none';
+    searchInput.focus();
+    render();
   });
 
   addBtn.addEventListener('click', function () {
