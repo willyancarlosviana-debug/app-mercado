@@ -705,7 +705,7 @@
   }
 
   function defaultItemsByCategory() {
-    return {
+    var data = {
       'Frutas e Verduras': mkItems(['Cebola', 'Alho', 'Milho', 'Maçã', 'Banana']),
       'Carnes': mkItems(['Salsicha', 'Frango', 'Sardinha']),
       'Limpeza': mkItems([
@@ -719,6 +719,8 @@
         'Margarina', 'Fermento pão', 'Requeijão', 'Óleo', 'Refil coador'
       ])
     };
+    CATEGORIES.forEach(function (cat) { sortItems(data[cat]); });
+    return data;
   }
 
   var state = { budget: 0, itemsByCategory: defaultItemsByCategory() };
@@ -760,7 +762,14 @@
     if (raw && Array.isArray(raw['Cereais']) && raw['Cereais'].length) {
       result['Cereais e Mercearia'] = result['Cereais e Mercearia'].concat(raw['Cereais']);
     }
+    CATEGORIES.forEach(function (cat) { sortItems(result[cat]); });
     return result;
+  }
+
+  function sortItems(list) {
+    list.sort(function (a, b) {
+      return (a.name || '').localeCompare(b.name || '', 'pt-BR', { sensitivity: 'base', numeric: true });
+    });
   }
 
   function categoryTotal(cat) {
@@ -857,6 +866,12 @@
       row.querySelector('.name-input').addEventListener('input', function (e) {
         list[idx].name = e.target.value;
         scheduleSave();
+      });
+      row.querySelector('.name-input').addEventListener('blur', function () {
+        // Reordena por ordem alfabética só ao terminar de editar o nome, para não
+        // "fugir" da posição do cursor enquanto a pessoa ainda está digitando.
+        sortItems(list);
+        render();
       });
       row.querySelector('.qty-input').addEventListener('input', function (e) {
         list[idx].qty = e.target.value;
