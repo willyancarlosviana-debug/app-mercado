@@ -113,6 +113,28 @@
   .sync-indicator.saving .dot { background: #C9962B; }
   .sync-indicator.off .dot { background: var(--warn); }
 
+  .top-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .theme-toggle {
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-toggle svg { width: 16px; height: 16px; }
+
   /* Budget panel */
   .budget-panel {
     background: var(--surface);
@@ -436,7 +458,10 @@
       <p class="eyebrow">Controle de compras</p>
       <h1>Lista de Mercado</h1>
     </div>
-    <span class="sync-indicator off" id="syncIndicator"><span class="dot"></span><span id="syncLabel">conectando…</span></span>
+    <div class="top-actions">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema"></button>
+      <span class="sync-indicator off" id="syncIndicator"><span class="dot"></span><span id="syncLabel">conectando…</span></span>
+    </div>
   </div>
 
   <div class="budget-panel">
@@ -505,6 +530,43 @@
   var syncIndicator = document.getElementById('syncIndicator');
   var syncLabel = document.getElementById('syncLabel');
   var categoryTabsEl = document.getElementById('categoryTabs');
+  var themeToggle = document.getElementById('themeToggle');
+
+  var THEME_KEY = 'lista-mercado-theme';
+  var SUN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+  var MOON_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+
+  function effectiveTheme() {
+    var explicit = document.documentElement.getAttribute('data-theme');
+    if (explicit) return explicit;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function refreshThemeIcon() {
+    // O ícone mostra o tema para o qual o clique vai mudar.
+    themeToggle.innerHTML = effectiveTheme() === 'dark' ? SUN_ICON : MOON_ICON;
+  }
+
+  function applyTheme(theme) {
+    if (theme === 'light' || theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', theme);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    refreshThemeIcon();
+  }
+
+  (function initTheme() {
+    var stored = null;
+    try { stored = localStorage.getItem(THEME_KEY); } catch (e) {}
+    applyTheme(stored);
+  })();
+
+  themeToggle.addEventListener('click', function () {
+    var next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    applyTheme(next);
+  });
 
   function defaultItemsByCategory() {
     return {
