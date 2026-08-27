@@ -136,6 +136,30 @@
   .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
   .theme-toggle svg { width: 16px; height: 16px; }
 
+  .reset-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 2rem;
+    padding: 0 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.78rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .reset-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .reset-btn:hover { border-color: var(--warn); color: var(--warn); }
+
+  @media (max-width: 480px) {
+    .reset-btn span.reset-label { display: none; }
+  }
+
   /* Budget panel */
   .budget-panel {
     background: var(--surface);
@@ -579,6 +603,10 @@
       <h1>Lista de Mercado</h1>
     </div>
     <div class="top-actions">
+      <button class="reset-btn" id="resetBtn" type="button" title="Zerar quantidades, valores e saldo para uma nova compra">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        <span class="reset-label">Nova lista</span>
+      </button>
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema"></button>
       <span class="sync-indicator off" id="syncIndicator"><span class="dot"></span><span id="syncLabel">conectando…</span></span>
     </div>
@@ -657,6 +685,7 @@
   var syncLabel = document.getElementById('syncLabel');
   var categoryTabsEl = document.getElementById('categoryTabs');
   var themeToggle = document.getElementById('themeToggle');
+  var resetBtn = document.getElementById('resetBtn');
   var searchInput = document.getElementById('searchInput');
   var clearSearchBtn = document.getElementById('clearSearchBtn');
   var addRowEl = document.getElementById('addRow');
@@ -1012,6 +1041,29 @@
     var inputs = rowsEl.querySelectorAll('.name-input');
     var last = inputs[inputs.length - 1];
     if (last) last.focus();
+  });
+
+  resetBtn.addEventListener('click', function () {
+    var ok = window.confirm(
+      'Zerar quantidade, valor e saldo para começar uma nova compra?\n\n' +
+      'Os nomes dos itens de cada aba continuam os mesmos — só os números voltam a zero. ' +
+      'Isso afeta o app de quem mais estiver com ele aberto.'
+    );
+    if (!ok) return;
+
+    state.budget = 0;
+    CATEGORIES.forEach(function (cat) {
+      (state.itemsByCategory[cat] || []).forEach(function (item) {
+        item.qty = 1;
+        item.price = 0;
+      });
+    });
+    searchQuery = '';
+    searchInput.value = '';
+    clearSearchBtn.style.display = 'none';
+
+    render();
+    persist();
   });
 
   function applyRemote(row) {
