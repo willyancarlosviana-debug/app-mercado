@@ -444,6 +444,17 @@
     text-align: center;
   }
 
+  .site-footer {
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+  }
+
   @media (max-width: 560px) {
     .list-head, .row, .list-foot {
       grid-template-columns: 1fr 3.4rem 4.6rem 4.8rem 1.6rem;
@@ -474,7 +485,7 @@
       </div>
     </div>
     <div class="field">
-      <label>Saldo restante (as 3 abas somadas)</label>
+      <label>Saldo restante</label>
       <div class="balance-value ok" id="balanceValue">R$ 0,00</div>
     </div>
   </div>
@@ -507,6 +518,8 @@
   </div>
 
   <p class="hint">As 3 abas compartilham o mesmo saldo e sincronizam em tempo real entre todos os aparelhos.</p>
+
+  <p class="site-footer">© <span id="footerYear"></span> Willyan Viana</p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -568,6 +581,9 @@
     try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
     applyTheme(next);
   });
+
+  var footerYearEl = document.getElementById('footerYear');
+  if (footerYearEl) footerYearEl.textContent = new Date().getFullYear();
 
   function defaultItemsByCategory() {
     return {
