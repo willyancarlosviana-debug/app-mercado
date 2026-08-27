@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lista de Mercado</title>
+<meta name="theme-color" content="#4A7C59">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mercado">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root {
+    --ground: #FBF8F2;
+    --surface: #FFFFFF;
+    --surface-2: #F3EEE2;
+    --line: #E4DCC9;
+    --ink: #2B2621;
+    --ink-soft: #6B6255;
+    --accent: #4A7C59;
+    --accent-soft: #E4EFE3;
+    --warn: #B84A3E;
+    --warn-soft: #F7E4E0;
+    --shadow: 0 1px 2px rgba(43,38,33,0.06), 0 6px 20px rgba(43,38,33,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #1B1814;
+      --surface: #242019;
+      --surface-2: #2C2720;
+      --line: #3B342A;
+      --ink: #EDE6D8;
+      --ink-soft: #A79C89;
+      --accent: #7FB58C;
+      --accent-soft: #26332A;
+      --warn: #E08175;
+      --warn-soft: #3A2521;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #1B1814;
+    --surface: #242019;
+    --surface-2: #2C2720;
+    --line: #3B342A;
+    --ink: #EDE6D8;
+    --ink-soft: #A79C89;
+    --accent: #7FB58C;
+    --accent-soft: #26332A;
+    --warn: #E08175;
+    --warn-soft: #3A2521;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 5rem;
+  }
+  .top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 0.35rem;
+  }
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
+    font-weight: 600;
+    margin: 0 0 1.75rem;
+    text-wrap: balance;
+  }
+
+  .sync-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+    margin-top: 0.15rem;
+  }
+  .sync-indicator .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ink-soft);
+    transition: background 0.2s ease;
+  }
+  .sync-indicator.live .dot { background: var(--accent); }
+  .sync-indicator.saving .dot { background: #C9962B; }
+  .sync-indicator.off .dot { background: var(--warn); }
+
+  /* Budget panel */
+  .budget-panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+  @media (max-width: 480px) {
+    .budget-panel { grid-template-columns: 1fr; }
+  }
+  .field label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    margin-bottom: 0.4rem;
+  }
+  .money-input {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    border-bottom: 2px solid var(--line);
+    padding-bottom: 0.3rem;
+    transition: border-color 0.15s ease;
+  }
+  .money-input:focus-within { border-color: var(--accent); }
+  .money-input span {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--ink-soft);
+    font-size: 1.1rem;
+  }
+  .money-input input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--ink);
+    width: 100%;
+    min-width: 0;
+  }
+  .balance-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.4rem;
+    font-weight: 600;
+    padding-bottom: 0.3rem;
+    border-bottom: 2px solid transparent;
+  }
+  .balance-value.ok { color: var(--accent); }
+  .balance-value.over { color: var(--warn); }
+
+  /* Status strip */
+  .status-strip {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin-bottom: 1rem;
+    padding: 0 0.1rem;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+  }
+  .pill.ok { background: var(--accent-soft); color: var(--accent); }
+  .pill.over { background: var(--warn-soft); color: var(--warn); }
+  .pill::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .status-strip .bar {
+    flex: 1;
+    height: 5px;
+    background: var(--surface-2);
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+  .status-strip .bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 0.25s ease, background 0.25s ease;
+  }
+  .status-strip .bar-fill.over { background: var(--warn); }
+
+  /* List */
+  .list-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .list-head {
+    display: grid;
+    grid-template-columns: 1fr 4.2rem 5.5rem 5.8rem 2rem;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface-2);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+  .list-head .num { text-align: right; }
+  #rows { display: flex; flex-direction: column; }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 4.2rem 5.5rem 5.8rem 2rem;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    border-top: 1px solid var(--line);
+  }
+  .row input[type="text"] {
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    padding: 0.3rem 0;
+    min-width: 0;
+  }
+  .row input[type="text"]::placeholder { color: var(--ink-soft); opacity: 0.6; }
+  .row input[type="number"] {
+    border: none;
+    border-bottom: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.9rem;
+    outline: none;
+    padding: 0.25rem 0.1rem;
+    width: 100%;
+    text-align: right;
+    min-width: 0;
+  }
+  .row input[type="number"]:focus { border-color: var(--accent); }
+  .row .line-total {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-align: right;
+  }
+  .row .remove {
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0.2rem;
+    border-radius: 6px;
+    justify-self: end;
+  }
+  .row .remove:hover { color: var(--warn); background: var(--warn-soft); }
+
+  .add-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+    border-top: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+  .add-row button {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px dashed var(--line);
+    background: var(--surface);
+    color: var(--accent);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .add-row button:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+  .list-foot {
+    display: grid;
+    grid-template-columns: 1fr 4.2rem 5.5rem 5.8rem 2rem;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+    border-top: 1px solid var(--line);
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .list-foot .label {
+    grid-column: 1 / 4;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+  .list-foot .total {
+    text-align: right;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  input:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .hint {
+    margin-top: 1rem;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+
+  @media (max-width: 560px) {
+    .list-head, .row, .list-foot {
+      grid-template-columns: 1fr 3.4rem 4.6rem 4.8rem 1.6rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="top-row">
+    <div>
+      <p class="eyebrow">Controle de compras</p>
+      <h1>Lista de Mercado</h1>
+    </div>
+    <span class="sync-indicator off" id="syncIndicator"><span class="dot"></span><span id="syncLabel">conectando…</span></span>
+  </div>
+
+  <div class="budget-panel">
+    <div class="field">
+      <label for="budget">Saldo para compra</label>
+      <div class="money-input">
+        <span>R$</span>
+        <input type="number" id="budget" inputmode="decimal" step="0.01" min="0" placeholder="0,00">
+      </div>
+    </div>
+    <div class="field">
+      <label>Saldo restante</label>
+      <div class="balance-value ok" id="balanceValue">R$ 0,00</div>
+    </div>
+  </div>
+
+  <div class="status-strip">
+    <span class="pill ok" id="statusPill">dentro do saldo</span>
+    <div class="bar"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+    <span id="statusPct">0%</span>
+  </div>
+
+  <div class="list-card">
+    <div class="list-head">
+      <span>Item</span>
+      <span class="num">Qtd.</span>
+      <span class="num">Unit.</span>
+      <span class="num">Total</span>
+      <span></span>
+    </div>
+    <div id="rows"></div>
+    <div class="add-row">
+      <button id="addBtn" type="button">+ adicionar item</button>
+    </div>
+    <div class="list-foot">
+      <span class="label">Total no carrinho</span>
+      <span class="total" id="cartTotal">R$ 0,00</span>
+      <span></span>
+    </div>
+  </div>
+
+  <p class="hint">Sincronizado em tempo real entre todos os aparelhos abertos nesta lista.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+  var SUPABASE_URL = 'https://rheujziajqjcezvvpfno.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_YSFqv-uAUtarAb1RUzLYBw_ftTjVxfG';
+  var ROW_ID = 'default';
+
+  var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  var rowsEl = document.getElementById('rows');
+  var budgetInput = document.getElementById('budget');
+  var balanceValue = document.getElementById('balanceValue');
+  var cartTotal = document.getElementById('cartTotal');
+  var statusPill = document.getElementById('statusPill');
+  var statusPct = document.getElementById('statusPct');
+  var barFill = document.getElementById('barFill');
+  var addBtn = document.getElementById('addBtn');
+  var syncIndicator = document.getElementById('syncIndicator');
+  var syncLabel = document.getElementById('syncLabel');
+
+  var defaultItems = [
+    { name: 'Arroz', qty: 1, price: 0 },
+    { name: 'Feijão', qty: 1, price: 0 },
+    { name: 'Carne', qty: 1, price: 0 }
+  ];
+
+  var state = { budget: 0, items: defaultItems };
+  var lastSentJson = null;
+  var saveTimer = null;
+  var activeField = null;
+
+  function setSync(mode, label) {
+    syncIndicator.className = 'sync-indicator ' + mode;
+    syncLabel.textContent = label;
+  }
+
+  function formatBRL(n) {
+    if (!isFinite(n)) n = 0;
+    return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function render() {
+    if (document.activeElement !== budgetInput) {
+      budgetInput.value = state.budget ? state.budget : '';
+    }
+    rowsEl.innerHTML = '';
+
+    var cart = 0;
+    state.items.forEach(function (item, idx) {
+      var qty = Number(item.qty) || 0;
+      var price = Number(item.price) || 0;
+      var lineTotal = qty * price;
+      cart += lineTotal;
+
+      var row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML =
+        '<input type="text" class="name-input" placeholder="Nome do item" value="' + escapeHtml(item.name || '') + '">' +
+        '<input type="number" class="qty-input" min="0" step="1" inputmode="numeric" value="' + (item.qty !== '' && item.qty !== undefined ? item.qty : '') + '">' +
+        '<input type="number" class="price-input" min="0" step="0.01" inputmode="decimal" value="' + (item.price !== '' && item.price !== undefined ? item.price : '') + '">' +
+        '<span class="line-total">' + formatBRL(lineTotal) + '</span>' +
+        '<button type="button" class="remove" aria-label="Remover item" title="Remover item">×</button>';
+
+      row.querySelector('.name-input').addEventListener('input', function (e) {
+        state.items[idx].name = e.target.value;
+        scheduleSave();
+      });
+      row.querySelector('.qty-input').addEventListener('input', function (e) {
+        state.items[idx].qty = e.target.value;
+        scheduleSave();
+        renderTotalsOnly();
+      });
+      row.querySelector('.price-input').addEventListener('input', function (e) {
+        state.items[idx].price = e.target.value;
+        scheduleSave();
+        renderTotalsOnly();
+      });
+      row.querySelector('.remove').addEventListener('click', function () {
+        state.items.splice(idx, 1);
+        scheduleSave();
+        render();
+      });
+
+      rowsEl.appendChild(row);
+    });
+
+    updateTotals();
+  }
+
+  // Recalcula só os totais sem recriar os inputs, para não perder o foco/cursor ao digitar.
+  function renderTotalsOnly() {
+    var cart = 0;
+    var rowEls = rowsEl.querySelectorAll('.row');
+    state.items.forEach(function (item, idx) {
+      var qty = Number(item.qty) || 0;
+      var price = Number(item.price) || 0;
+      var lineTotal = qty * price;
+      cart += lineTotal;
+      var totalEl = rowEls[idx] && rowEls[idx].querySelector('.line-total');
+      if (totalEl) totalEl.textContent = formatBRL(lineTotal);
+    });
+    updateTotals(cart);
+  }
+
+  function updateTotals(precomputedCart) {
+    var cart = precomputedCart;
+    if (cart === undefined) {
+      cart = state.items.reduce(function (sum, item) {
+        return sum + (Number(item.qty) || 0) * (Number(item.price) || 0);
+      }, 0);
+    }
+
+    cartTotal.textContent = formatBRL(cart);
+
+    var budget = Number(state.budget) || 0;
+    var remaining = budget - cart;
+    var over = remaining < 0;
+
+    balanceValue.textContent = formatBRL(remaining);
+    balanceValue.className = 'balance-value ' + (over ? 'over' : 'ok');
+
+    statusPill.className = 'pill ' + (over ? 'over' : 'ok');
+    statusPill.textContent = over ? 'saldo estourado' : 'dentro do saldo';
+
+    var pct = budget > 0 ? Math.min(100, (cart / budget) * 100) : (cart > 0 ? 100 : 0);
+    barFill.style.width = pct + '%';
+    barFill.className = 'bar-fill' + (over ? ' over' : '');
+    statusPct.textContent = Math.round(budget > 0 ? (cart / budget) * 100 : 0) + '%';
+  }
+
+  function scheduleSave() {
+    setSync('saving', 'salvando…');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(persist, 450);
+  }
+
+  function persist() {
+    var payload = {
+      id: ROW_ID,
+      budget: Number(state.budget) || 0,
+      items: state.items,
+      updated_at: new Date().toISOString()
+    };
+    lastSentJson = JSON.stringify({ budget: payload.budget, items: payload.items });
+    supabase.from('mercado_state').upsert(payload).then(function (res) {
+      if (res.error) {
+        setSync('off', 'erro ao salvar');
+      } else {
+        setSync('live', 'sincronizado');
+      }
+    });
+  }
+
+  budgetInput.addEventListener('input', function (e) {
+    state.budget = e.target.value;
+    scheduleSave();
+    updateTotals();
+  });
+
+  addBtn.addEventListener('click', function () {
+    state.items.push({ name: '', qty: 1, price: 0 });
+    scheduleSave();
+    render();
+    var inputs = rowsEl.querySelectorAll('.name-input');
+    var last = inputs[inputs.length - 1];
+    if (last) last.focus();
+  });
+
+  function applyRemote(row) {
+    var incomingJson = JSON.stringify({ budget: Number(row.budget) || 0, items: row.items || [] });
+    if (incomingJson === lastSentJson) return; // eco do próprio salvamento
+    state.budget = row.budget;
+    state.items = (row.items && row.items.length) ? row.items : [];
+    lastSentJson = incomingJson;
+    render();
+  }
+
+  async function init() {
+    setSync('saving', 'carregando…');
+    var res = await supabase.from('mercado_state').select('*').eq('id', ROW_ID).maybeSingle();
+    if (res.error) {
+      setSync('off', 'offline');
+      render();
+      return;
+    }
+    if (res.data) {
+      state.budget = res.data.budget;
+      state.items = (res.data.items && res.data.items.length) ? res.data.items : defaultItems;
+      lastSentJson = JSON.stringify({ budget: Number(state.budget) || 0, items: state.items });
+    } else {
+      await supabase.from('mercado_state').upsert({ id: ROW_ID, budget: 0, items: defaultItems });
+    }
+    render();
+    setSync('live', 'sincronizado');
+
+    supabase
+      .channel('mercado_state_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'mercado_state', filter: 'id=eq.' + ROW_ID }, function (payload) {
+        if (payload.new) applyRemote(payload.new);
+      })
+      .subscribe(function (status) {
+        if (status === 'SUBSCRIBED') setSync('live', 'sincronizado');
+        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setSync('off', 'offline');
+      });
+  }
+
+  init();
+})();
+
+// PWA: gera ícone e manifest em tempo de execução para permitir "Adicionar à tela inicial"
+(function setupInstallable() {
+  function drawIcon(size) {
+    var canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    var ctx = canvas.getContext('2d');
+    var r = size * 0.22;
+    ctx.fillStyle = '#4A7C59';
+    ctx.beginPath();
+    ctx.moveTo(r, 0);
+    ctx.arcTo(size, 0, size, size, r);
+    ctx.arcTo(size, size, 0, size, r);
+    ctx.arcTo(0, size, 0, 0, r);
+    ctx.arcTo(0, 0, size, 0, r);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = '#FBF8F2';
+    ctx.fillStyle = '#FBF8F2';
+    ctx.lineWidth = size * 0.045;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    var s = size;
+    ctx.beginPath();
+    ctx.moveTo(s * 0.20, s * 0.28);
+    ctx.lineTo(s * 0.30, s * 0.28);
+    ctx.lineTo(s * 0.40, s * 0.62);
+    ctx.lineTo(s * 0.76, s * 0.62);
+    ctx.lineTo(s * 0.84, s * 0.38);
+    ctx.lineTo(s * 0.34, s * 0.38);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(s * 0.45, s * 0.74, s * 0.045, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(s * 0.72, s * 0.74, s * 0.045, 0, Math.PI * 2);
+    ctx.fill();
+
+    return canvas.toDataURL('image/png');
+  }
+
+  try {
+    var icon192 = drawIcon(192);
+    var icon512 = drawIcon(512);
+
+    var appleTouch = document.createElement('link');
+    appleTouch.rel = 'apple-touch-icon';
+    appleTouch.href = icon192;
+    document.head.appendChild(appleTouch);
+
+    var favicon = document.createElement('link');
+    favicon.rel = 'icon';
+    favicon.href = icon192;
+    document.head.appendChild(favicon);
+
+    var manifest = {
+      name: 'Lista de Mercado',
+      short_name: 'Mercado',
+      start_url: '.',
+      scope: '.',
+      display: 'standalone',
+      background_color: '#FBF8F2',
+      theme_color: '#4A7C59',
+      icons: [
+        { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+        { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+      ]
+    };
+    var blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+    var manifestUrl = URL.createObjectURL(blob);
+
+    var manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = manifestUrl;
+    document.head.appendChild(manifestLink);
+  } catch (e) { /* instalação como app é um extra; a lista funciona normalmente sem isso */ }
+})();
+</script>
+</body>
+</html>
