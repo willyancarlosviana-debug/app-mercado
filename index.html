@@ -948,6 +948,19 @@
     saveTimer = setTimeout(persist, 450);
   }
 
+  // Espelha o que normalizeItems() vai produzir quando o eco desta gravação
+  // voltar pelo realtime, sem reordenar a lista de verdade enquanto a pessoa
+  // ainda pode estar digitando um nome.
+  function sortedSnapshot(itemsByCategory) {
+    var snap = {};
+    CATEGORIES.forEach(function (cat) {
+      var copy = (itemsByCategory[cat] || []).slice();
+      sortItems(copy);
+      snap[cat] = copy;
+    });
+    return snap;
+  }
+
   function persist() {
     var payload = {
       id: ROW_ID,
@@ -955,7 +968,7 @@
       items: state.itemsByCategory,
       updated_at: new Date().toISOString()
     };
-    lastSentJson = JSON.stringify({ budget: payload.budget, items: payload.items });
+    lastSentJson = JSON.stringify({ budget: payload.budget, items: sortedSnapshot(payload.items) });
     supabase.from('mercado_state').upsert(payload).then(function (res) {
       if (res.error) {
         setSync('off', 'erro ao salvar');
