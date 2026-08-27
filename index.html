@@ -321,6 +321,12 @@
     padding: 0.6rem 1rem;
     border-top: 1px solid var(--line);
   }
+  .row .name-input { grid-area: name; }
+  .row .qty-field { grid-area: qty; }
+  .row .unit-field { grid-area: unit; }
+  .row .line-total { grid-area: total; }
+  .row .remove { grid-area: remove; }
+
   .row input[type="text"] {
     border: none;
     background: transparent;
@@ -329,6 +335,7 @@
     font-size: 0.95rem;
     outline: none;
     padding: 0.3rem 0;
+    width: 100%;
     min-width: 0;
   }
   .row input[type="text"]::placeholder { color: var(--ink-soft); opacity: 0.6; }
@@ -347,6 +354,9 @@
     min-width: 0;
   }
   .row input[type="number"]:focus { border-color: var(--accent); }
+  .field-label {
+    display: none;
+  }
   .row .line-total {
     font-family: 'IBM Plex Mono', monospace;
     font-variant-numeric: tabular-nums;
@@ -456,9 +466,41 @@
   }
 
   @media (max-width: 560px) {
-    .list-head, .row, .list-foot {
-      grid-template-columns: 1fr 3.4rem 4.6rem 4.8rem 1.6rem;
+    .list-head { display: none; }
+
+    .row {
+      grid-template-columns: 1fr 1fr 1fr auto;
+      grid-template-areas:
+        "name name name remove"
+        "qty  unit  total total";
+      row-gap: 0.6rem;
+      column-gap: 0.6rem;
+      padding: 0.75rem 1rem;
     }
+    .row .name-input {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    .row .remove { align-self: start; }
+    .row .line-total {
+      align-self: center;
+      font-size: 1rem;
+    }
+    .field-label {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-soft);
+      margin-bottom: 0.2rem;
+    }
+
+    .list-foot {
+      grid-template-columns: 1fr auto;
+    }
+    .list-foot .label { grid-column: auto; }
   }
 </style>
 </head>
@@ -696,8 +738,8 @@
       var lineTotal = (Number(item.qty) || 0) * (Number(item.price) || 0);
       row.innerHTML =
         '<input type="text" class="name-input" placeholder="Nome do item" value="' + escapeHtml(item.name || '') + '">' +
-        '<input type="number" class="qty-input" min="0" step="1" inputmode="numeric" value="' + (item.qty !== '' && item.qty !== undefined ? item.qty : '') + '">' +
-        '<input type="number" class="price-input" min="0" step="0.01" inputmode="decimal" value="' + (item.price !== '' && item.price !== undefined ? item.price : '') + '">' +
+        '<div class="qty-field"><span class="field-label">Qtd.</span><input type="number" class="qty-input" min="0" step="1" inputmode="numeric" value="' + (item.qty !== '' && item.qty !== undefined ? item.qty : '') + '"></div>' +
+        '<div class="unit-field"><span class="field-label">Unit.</span><input type="number" class="price-input" min="0" step="0.01" inputmode="decimal" value="' + (item.price !== '' && item.price !== undefined ? item.price : '') + '"></div>' +
         '<span class="line-total">' + formatBRL(lineTotal) + '</span>' +
         '<button type="button" class="remove" aria-label="Remover item" title="Remover item">×</button>';
 
