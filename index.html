@@ -555,6 +555,149 @@
     color: var(--ink-soft);
   }
 
+  /* Planejar compra */
+  .planning-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .planning-header h2 {
+    font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0.2rem 0 0;
+    letter-spacing: -0.01em;
+  }
+  .planning-counter {
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .plan-category { margin-bottom: 1.25rem; }
+  .plan-category-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    gap: 0.75rem;
+  }
+  .plan-category-head .name {
+    font-weight: 600;
+    font-size: 0.88rem;
+  }
+  .plan-category-head .bulk-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+  .plan-category-head .bulk-actions button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.66rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .plan-category-head .mark-all { color: var(--accent); }
+  .plan-category-head .unmark-all { color: var(--ink-soft); }
+
+  .plan-list {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .plan-row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 0.9rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.92rem;
+    cursor: pointer;
+  }
+  .plan-row:first-child { border-top: none; }
+  .plan-row input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+  }
+  .plan-add-row {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    border-top: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+  .plan-add-row input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.4rem 0.6rem;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+  }
+  .plan-add-row input[type="text"]:focus { border-color: var(--accent); }
+  .plan-add-row button {
+    border: 1px dashed var(--line);
+    background: var(--surface);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .plan-add-row button:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+  .planning-footer {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line);
+    background: var(--ground);
+  }
+  .planning-footer button {
+    padding: 0.7rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .planning-footer .cancel-plan {
+    flex: 1;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+  }
+  .planning-footer .go-shopping {
+    flex: 2;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+  }
+  .planning-footer .go-shopping:hover { filter: brightness(0.93); }
+
   @media (max-width: 560px) {
     .list-head { display: none; }
 
@@ -603,6 +746,10 @@
       <h1>Lista de Mercado</h1>
     </div>
     <div class="top-actions">
+      <button class="reset-btn" id="planBtn" type="button" title="Escolher quais itens entram nesta compra">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span class="reset-label">Planejar compra</span>
+      </button>
       <button class="reset-btn" id="resetBtn" type="button" title="Zerar quantidades, valores e saldo para uma nova compra">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
         <span class="reset-label">Nova lista</span>
@@ -612,52 +759,56 @@
     </div>
   </div>
 
-  <div class="budget-panel">
-    <div class="field">
-      <label for="budget">Saldo para compra</label>
-      <div class="money-input">
-        <span>R$</span>
-        <input type="number" id="budget" inputmode="decimal" step="0.01" min="0" placeholder="0,00">
+  <div id="shoppingView">
+    <div class="budget-panel">
+      <div class="field">
+        <label for="budget">Saldo para compra</label>
+        <div class="money-input">
+          <span>R$</span>
+          <input type="number" id="budget" inputmode="decimal" step="0.01" min="0" placeholder="0,00">
+        </div>
+      </div>
+      <div class="field">
+        <label>Saldo restante</label>
+        <div class="balance-value ok" id="balanceValue">R$ 0,00</div>
       </div>
     </div>
-    <div class="field">
-      <label>Saldo restante</label>
-      <div class="balance-value ok" id="balanceValue">R$ 0,00</div>
+
+    <div class="status-strip">
+      <span class="pill ok" id="statusPill">dentro do saldo</span>
+      <div class="bar"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+      <span id="statusPct">0%</span>
+    </div>
+
+    <div class="search-bar">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" id="searchInput" placeholder="Buscar item em todas as abas..." autocomplete="off">
+      <button type="button" class="clear-search" id="clearSearchBtn" aria-label="Limpar busca" title="Limpar busca" style="display:none">×</button>
+    </div>
+
+    <div class="category-tabs" id="categoryTabs"></div>
+
+    <div class="list-card">
+      <div class="list-head">
+        <span>Item</span>
+        <span class="num">Qtd.</span>
+        <span class="num">Unit.</span>
+        <span class="num">Total</span>
+        <span></span>
+      </div>
+      <div id="rows"></div>
+      <div class="add-row" id="addRow">
+        <button id="addBtn" type="button">+ adicionar item</button>
+      </div>
+      <div class="list-foot">
+        <span class="label" id="footLabel">Subtotal nesta aba</span>
+        <span class="total" id="cartTotal">R$ 0,00</span>
+        <span></span>
+      </div>
     </div>
   </div>
 
-  <div class="status-strip">
-    <span class="pill ok" id="statusPill">dentro do saldo</span>
-    <div class="bar"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
-    <span id="statusPct">0%</span>
-  </div>
-
-  <div class="search-bar">
-    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-    <input type="text" id="searchInput" placeholder="Buscar item em todas as abas..." autocomplete="off">
-    <button type="button" class="clear-search" id="clearSearchBtn" aria-label="Limpar busca" title="Limpar busca" style="display:none">×</button>
-  </div>
-
-  <div class="category-tabs" id="categoryTabs"></div>
-
-  <div class="list-card">
-    <div class="list-head">
-      <span>Item</span>
-      <span class="num">Qtd.</span>
-      <span class="num">Unit.</span>
-      <span class="num">Total</span>
-      <span></span>
-    </div>
-    <div id="rows"></div>
-    <div class="add-row" id="addRow">
-      <button id="addBtn" type="button">+ adicionar item</button>
-    </div>
-    <div class="list-foot">
-      <span class="label" id="footLabel">Subtotal nesta aba</span>
-      <span class="total" id="cartTotal">R$ 0,00</span>
-      <span></span>
-    </div>
-  </div>
+  <div class="planning-view" id="planningView" style="display:none;"></div>
 
   <p class="site-footer">© <span id="footerYear"></span> Willyan Viana</p>
 </div>
@@ -730,7 +881,7 @@
   if (footerYearEl) footerYearEl.textContent = new Date().getFullYear();
 
   function mkItems(names) {
-    return names.map(function (name) { return { name: name, qty: 1, price: 0 }; });
+    return names.map(function (name) { return { name: name, qty: 1, price: 0, included: true }; });
   }
 
   function defaultItemsByCategory() {
@@ -804,6 +955,7 @@
   function categoryTotal(cat) {
     var items = state.itemsByCategory[cat] || [];
     return items.reduce(function (sum, item) {
+      if (item.included === false) return sum;
       return sum + (Number(item.qty) || 0) * (Number(item.price) || 0);
     }, 0);
   }
@@ -841,6 +993,7 @@
       var out = [];
       CATEGORIES.forEach(function (cat) {
         (state.itemsByCategory[cat] || []).forEach(function (item, idx) {
+          if (item.included === false) return;
           if ((item.name || '').toLowerCase().indexOf(query) !== -1) {
             out.push({ item: item, cat: cat, idx: idx });
           }
@@ -848,9 +1001,9 @@
       });
       return out;
     }
-    return (state.itemsByCategory[activeCategory] || []).map(function (item, idx) {
-      return { item: item, cat: activeCategory, idx: idx };
-    });
+    return (state.itemsByCategory[activeCategory] || [])
+      .map(function (item, idx) { return { item: item, cat: activeCategory, idx: idx }; })
+      .filter(function (entry) { return entry.item.included !== false; });
   }
 
   function render() {
@@ -869,9 +1022,12 @@
     if (!entries.length) {
       var empty = document.createElement('div');
       empty.className = 'empty-state';
+      var hasAnyInCategory = (state.itemsByCategory[activeCategory] || []).length > 0;
       empty.textContent = query
         ? 'Nenhum item encontrado para "' + searchQuery.trim() + '".'
-        : 'Nenhum item em "' + activeCategory + '" ainda.';
+        : hasAnyInCategory
+          ? 'Nenhum item incluído nesta aba. Toque em "Planejar compra" para escolher os itens desta compra.'
+          : 'Nenhum item em "' + activeCategory + '" ainda.';
       rowsEl.appendChild(empty);
     }
 
@@ -1035,7 +1191,7 @@
   });
 
   addBtn.addEventListener('click', function () {
-    state.itemsByCategory[activeCategory].push({ name: '', qty: 1, price: 0 });
+    state.itemsByCategory[activeCategory].push({ name: '', qty: 1, price: 0, included: true });
     scheduleSave();
     render();
     var inputs = rowsEl.querySelectorAll('.name-input');
@@ -1046,8 +1202,8 @@
   resetBtn.addEventListener('click', function () {
     var ok = window.confirm(
       'Zerar quantidade, valor e saldo para começar uma nova compra?\n\n' +
-      'Os nomes dos itens de cada aba continuam os mesmos — só os números voltam a zero. ' +
-      'Isso afeta o app de quem mais estiver com ele aberto.'
+      'Os nomes dos itens de cada aba continuam os mesmos, mas você vai escolher de novo quais entram ' +
+      'nesta lista na tela de planejamento. Isso afeta o app de quem mais estiver com ele aberto.'
     );
     if (!ok) return;
 
@@ -1056,6 +1212,7 @@
       (state.itemsByCategory[cat] || []).forEach(function (item) {
         item.qty = 1;
         item.price = 0;
+        item.included = false;
       });
     });
     searchQuery = '';
@@ -1064,7 +1221,140 @@
 
     render();
     persist();
+    openPlanning();
   });
+
+  var planBtn = document.getElementById('planBtn');
+  var shoppingViewEl = document.getElementById('shoppingView');
+  var planningViewEl = document.getElementById('planningView');
+  var planningDraft = null;
+
+  function cloneItemsByCategory(src) {
+    var out = {};
+    CATEGORIES.forEach(function (cat) {
+      out[cat] = (src[cat] || []).map(function (item) {
+        return { name: item.name, qty: item.qty, price: item.price, included: item.included !== false };
+      });
+    });
+    return out;
+  }
+
+  function openPlanning() {
+    planningDraft = cloneItemsByCategory(state.itemsByCategory);
+    shoppingViewEl.style.display = 'none';
+    planningViewEl.style.display = '';
+    renderPlanningView();
+  }
+
+  function closePlanning() {
+    planningDraft = null;
+    planningViewEl.style.display = 'none';
+    shoppingViewEl.style.display = '';
+  }
+
+  function updatePlanningCounter() {
+    var n = 0;
+    CATEGORIES.forEach(function (cat) {
+      planningDraft[cat].forEach(function (item) { if (item.included) n++; });
+    });
+    var el = document.getElementById('planningCounter');
+    if (el) el.textContent = n + (n === 1 ? ' selecionado' : ' selecionados');
+  }
+
+  function renderPlanningView() {
+    planningViewEl.innerHTML = '';
+
+    var header = document.createElement('div');
+    header.className = 'planning-header';
+    header.innerHTML =
+      '<div><p class="eyebrow">Antes de ir às compras</p><h2>O que vai nessa lista?</h2></div>' +
+      '<span class="planning-counter" id="planningCounter"></span>';
+    planningViewEl.appendChild(header);
+
+    CATEGORIES.forEach(function (cat) {
+      var section = document.createElement('div');
+      section.className = 'plan-category';
+
+      var head = document.createElement('div');
+      head.className = 'plan-category-head';
+      head.innerHTML =
+        '<span class="name">' + escapeHtml(cat) + '</span>' +
+        '<span class="bulk-actions">' +
+          '<button type="button" class="mark-all">marcar todos</button>' +
+          '<button type="button" class="unmark-all">desmarcar todos</button>' +
+        '</span>';
+      section.appendChild(head);
+
+      var list = document.createElement('div');
+      list.className = 'plan-list';
+
+      planningDraft[cat].forEach(function (item, idx) {
+        var row = document.createElement('label');
+        row.className = 'plan-row';
+        row.innerHTML =
+          '<input type="checkbox"' + (item.included ? ' checked' : '') + '>' +
+          '<span>' + escapeHtml(item.name || '(sem nome)') + '</span>';
+        row.querySelector('input').addEventListener('change', function (e) {
+          planningDraft[cat][idx].included = e.target.checked;
+          updatePlanningCounter();
+        });
+        list.appendChild(row);
+      });
+
+      var addRow = document.createElement('div');
+      addRow.className = 'plan-add-row';
+      addRow.innerHTML = '<input type="text" placeholder="Adicionar item novo..."><button type="button">+ adicionar</button>';
+      var addInput = addRow.querySelector('input');
+      var addBtnEl = addRow.querySelector('button');
+      function addNewPlanItem() {
+        var name = addInput.value.trim();
+        if (!name) return;
+        planningDraft[cat].push({ name: name, qty: 1, price: 0, included: true });
+        renderPlanningView();
+      }
+      addBtnEl.addEventListener('click', addNewPlanItem);
+      addInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addNewPlanItem(); }
+      });
+      list.appendChild(addRow);
+
+      section.appendChild(list);
+
+      head.querySelector('.mark-all').addEventListener('click', function () {
+        planningDraft[cat].forEach(function (item) { item.included = true; });
+        renderPlanningView();
+      });
+      head.querySelector('.unmark-all').addEventListener('click', function () {
+        planningDraft[cat].forEach(function (item) { item.included = false; });
+        renderPlanningView();
+      });
+
+      planningViewEl.appendChild(section);
+    });
+
+    var footer = document.createElement('div');
+    footer.className = 'planning-footer';
+    footer.innerHTML =
+      '<button type="button" class="cancel-plan">Cancelar</button>' +
+      '<button type="button" class="go-shopping">Ir às compras</button>';
+    footer.querySelector('.cancel-plan').addEventListener('click', closePlanning);
+    footer.querySelector('.go-shopping').addEventListener('click', confirmPlanning);
+    planningViewEl.appendChild(footer);
+
+    updatePlanningCounter();
+  }
+
+  function confirmPlanning() {
+    CATEGORIES.forEach(function (cat) { sortItems(planningDraft[cat]); });
+    state.itemsByCategory = planningDraft;
+    planningDraft = null;
+    planningViewEl.style.display = 'none';
+    shoppingViewEl.style.display = '';
+    persist();
+    render();
+  }
+
+  planBtn.addEventListener('click', openPlanning);
 
   function applyRemote(row) {
     var normalized = normalizeItems(row.items);
