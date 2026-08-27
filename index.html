@@ -123,7 +123,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.25rem;
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.25rem;
   }
   @media (max-width: 480px) {
     .budget-panel { grid-template-columns: 1fr; }
@@ -182,7 +182,7 @@
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.8rem;
     color: var(--ink-soft);
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
     padding: 0 0.1rem;
   }
   .pill {
@@ -218,6 +218,55 @@
     transition: width 0.25s ease, background 0.25s ease;
   }
   .status-strip .bar-fill.over { background: var(--warn); }
+
+  /* Category tabs */
+  .category-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+  }
+  .category-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    text-align: left;
+    min-width: 0;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .category-tab:hover { border-color: var(--accent); }
+  .category-tab.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .category-tab .tab-name {
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .category-tab .tab-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+  .category-tab.active .tab-sub { color: var(--accent); }
+
+  @media (max-width: 520px) {
+    .category-tab .tab-name { font-size: 0.74rem; }
+    .category-tab .tab-sub { font-size: 0.66rem; }
+  }
 
   /* List */
   .list-card {
@@ -294,6 +343,14 @@
     justify-self: end;
   }
   .row .remove:hover { color: var(--warn); background: var(--warn-soft); }
+
+  .empty-state {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--line);
+  }
 
   .add-row {
     display: flex;
@@ -391,7 +448,7 @@
       </div>
     </div>
     <div class="field">
-      <label>Saldo restante</label>
+      <label>Saldo restante (as 3 abas somadas)</label>
       <div class="balance-value ok" id="balanceValue">R$ 0,00</div>
     </div>
   </div>
@@ -401,6 +458,8 @@
     <div class="bar"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
     <span id="statusPct">0%</span>
   </div>
+
+  <div class="category-tabs" id="categoryTabs"></div>
 
   <div class="list-card">
     <div class="list-head">
@@ -415,13 +474,13 @@
       <button id="addBtn" type="button">+ adicionar item</button>
     </div>
     <div class="list-foot">
-      <span class="label">Total no carrinho</span>
+      <span class="label" id="footLabel">Subtotal nesta aba</span>
       <span class="total" id="cartTotal">R$ 0,00</span>
       <span></span>
     </div>
   </div>
 
-  <p class="hint">Sincronizado em tempo real entre todos os aparelhos abertos nesta lista.</p>
+  <p class="hint">As 3 abas compartilham o mesmo saldo e sincronizam em tempo real entre todos os aparelhos.</p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -430,6 +489,7 @@
   var SUPABASE_URL = 'https://rheujziajqjcezvvpfno.supabase.co';
   var SUPABASE_KEY = 'sb_publishable_YSFqv-uAUtarAb1RUzLYBw_ftTjVxfG';
   var ROW_ID = 'default';
+  var CATEGORIES = ['Frutas e Verduras', 'Limpeza', 'Cereais'];
 
   var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -437,23 +497,30 @@
   var budgetInput = document.getElementById('budget');
   var balanceValue = document.getElementById('balanceValue');
   var cartTotal = document.getElementById('cartTotal');
+  var footLabel = document.getElementById('footLabel');
   var statusPill = document.getElementById('statusPill');
   var statusPct = document.getElementById('statusPct');
   var barFill = document.getElementById('barFill');
   var addBtn = document.getElementById('addBtn');
   var syncIndicator = document.getElementById('syncIndicator');
   var syncLabel = document.getElementById('syncLabel');
+  var categoryTabsEl = document.getElementById('categoryTabs');
 
-  var defaultItems = [
-    { name: 'Arroz', qty: 1, price: 0 },
-    { name: 'Feijão', qty: 1, price: 0 },
-    { name: 'Carne', qty: 1, price: 0 }
-  ];
+  function defaultItemsByCategory() {
+    return {
+      'Frutas e Verduras': [],
+      'Limpeza': [],
+      'Cereais': [
+        { name: 'Arroz', qty: 1, price: 0 },
+        { name: 'Feijão', qty: 1, price: 0 }
+      ]
+    };
+  }
 
-  var state = { budget: 0, items: defaultItems };
+  var state = { budget: 0, itemsByCategory: defaultItemsByCategory() };
+  var activeCategory = CATEGORIES[0];
   var lastSentJson = null;
   var saveTimer = null;
-  var activeField = null;
 
   function setSync(mode, label) {
     syncIndicator.className = 'sync-indicator ' + mode;
@@ -471,21 +538,72 @@
     return div.innerHTML;
   }
 
+  // Garante que todas as categorias existam, mesmo em dados antigos/incompletos.
+  function normalizeItems(raw) {
+    var result = {};
+    CATEGORIES.forEach(function (cat) {
+      if (raw && Array.isArray(raw[cat])) {
+        result[cat] = raw[cat];
+      } else {
+        result[cat] = [];
+      }
+    });
+    // Formato antigo (lista única, sem categorias): joga tudo em Cereais.
+    if (raw && Array.isArray(raw) && raw.length) {
+      result['Cereais'] = result['Cereais'].concat(raw);
+    }
+    return result;
+  }
+
+  function categoryTotal(cat) {
+    var items = state.itemsByCategory[cat] || [];
+    return items.reduce(function (sum, item) {
+      return sum + (Number(item.qty) || 0) * (Number(item.price) || 0);
+    }, 0);
+  }
+
+  function grandTotal() {
+    return CATEGORIES.reduce(function (sum, cat) { return sum + categoryTotal(cat); }, 0);
+  }
+
+  function renderTabs() {
+    categoryTabsEl.innerHTML = '';
+    CATEGORIES.forEach(function (cat) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'category-tab' + (cat === activeCategory ? ' active' : '');
+      btn.innerHTML =
+        '<span class="tab-name">' + escapeHtml(cat) + '</span>' +
+        '<span class="tab-sub">' + formatBRL(categoryTotal(cat)) + '</span>';
+      btn.addEventListener('click', function () {
+        activeCategory = cat;
+        render();
+      });
+      categoryTabsEl.appendChild(btn);
+    });
+  }
+
   function render() {
+    renderTabs();
+
     if (document.activeElement !== budgetInput) {
       budgetInput.value = state.budget ? state.budget : '';
     }
     rowsEl.innerHTML = '';
 
-    var cart = 0;
-    state.items.forEach(function (item, idx) {
-      var qty = Number(item.qty) || 0;
-      var price = Number(item.price) || 0;
-      var lineTotal = qty * price;
-      cart += lineTotal;
+    var items = state.itemsByCategory[activeCategory] || [];
 
+    if (!items.length) {
+      var empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.textContent = 'Nenhum item em "' + activeCategory + '" ainda.';
+      rowsEl.appendChild(empty);
+    }
+
+    items.forEach(function (item, idx) {
       var row = document.createElement('div');
       row.className = 'row';
+      var lineTotal = (Number(item.qty) || 0) * (Number(item.price) || 0);
       row.innerHTML =
         '<input type="text" class="name-input" placeholder="Nome do item" value="' + escapeHtml(item.name || '') + '">' +
         '<input type="number" class="qty-input" min="0" step="1" inputmode="numeric" value="' + (item.qty !== '' && item.qty !== undefined ? item.qty : '') + '">' +
@@ -494,21 +612,21 @@
         '<button type="button" class="remove" aria-label="Remover item" title="Remover item">×</button>';
 
       row.querySelector('.name-input').addEventListener('input', function (e) {
-        state.items[idx].name = e.target.value;
+        items[idx].name = e.target.value;
         scheduleSave();
       });
       row.querySelector('.qty-input').addEventListener('input', function (e) {
-        state.items[idx].qty = e.target.value;
+        items[idx].qty = e.target.value;
         scheduleSave();
         renderTotalsOnly();
       });
       row.querySelector('.price-input').addEventListener('input', function (e) {
-        state.items[idx].price = e.target.value;
+        items[idx].price = e.target.value;
         scheduleSave();
         renderTotalsOnly();
       });
       row.querySelector('.remove').addEventListener('click', function () {
-        state.items.splice(idx, 1);
+        items.splice(idx, 1);
         scheduleSave();
         render();
       });
@@ -519,33 +637,28 @@
     updateTotals();
   }
 
-  // Recalcula só os totais sem recriar os inputs, para não perder o foco/cursor ao digitar.
+  // Recalcula só os totais/rótulos sem recriar os inputs, para não perder o foco ao digitar.
   function renderTotalsOnly() {
-    var cart = 0;
+    var items = state.itemsByCategory[activeCategory] || [];
     var rowEls = rowsEl.querySelectorAll('.row');
-    state.items.forEach(function (item, idx) {
-      var qty = Number(item.qty) || 0;
-      var price = Number(item.price) || 0;
-      var lineTotal = qty * price;
-      cart += lineTotal;
+    items.forEach(function (item, idx) {
+      var lineTotal = (Number(item.qty) || 0) * (Number(item.price) || 0);
       var totalEl = rowEls[idx] && rowEls[idx].querySelector('.line-total');
       if (totalEl) totalEl.textContent = formatBRL(lineTotal);
     });
-    updateTotals(cart);
+    renderTabs();
+    updateTotals();
   }
 
-  function updateTotals(precomputedCart) {
-    var cart = precomputedCart;
-    if (cart === undefined) {
-      cart = state.items.reduce(function (sum, item) {
-        return sum + (Number(item.qty) || 0) * (Number(item.price) || 0);
-      }, 0);
-    }
+  function updateTotals() {
+    var subtotal = categoryTotal(activeCategory);
+    var total = grandTotal();
 
-    cartTotal.textContent = formatBRL(cart);
+    footLabel.textContent = 'Subtotal — ' + activeCategory;
+    cartTotal.textContent = formatBRL(subtotal);
 
     var budget = Number(state.budget) || 0;
-    var remaining = budget - cart;
+    var remaining = budget - total;
     var over = remaining < 0;
 
     balanceValue.textContent = formatBRL(remaining);
@@ -554,10 +667,10 @@
     statusPill.className = 'pill ' + (over ? 'over' : 'ok');
     statusPill.textContent = over ? 'saldo estourado' : 'dentro do saldo';
 
-    var pct = budget > 0 ? Math.min(100, (cart / budget) * 100) : (cart > 0 ? 100 : 0);
+    var pct = budget > 0 ? Math.min(100, (total / budget) * 100) : (total > 0 ? 100 : 0);
     barFill.style.width = pct + '%';
     barFill.className = 'bar-fill' + (over ? ' over' : '');
-    statusPct.textContent = Math.round(budget > 0 ? (cart / budget) * 100 : 0) + '%';
+    statusPct.textContent = Math.round(budget > 0 ? (total / budget) * 100 : 0) + '%';
   }
 
   function scheduleSave() {
@@ -570,7 +683,7 @@
     var payload = {
       id: ROW_ID,
       budget: Number(state.budget) || 0,
-      items: state.items,
+      items: state.itemsByCategory,
       updated_at: new Date().toISOString()
     };
     lastSentJson = JSON.stringify({ budget: payload.budget, items: payload.items });
@@ -590,7 +703,7 @@
   });
 
   addBtn.addEventListener('click', function () {
-    state.items.push({ name: '', qty: 1, price: 0 });
+    state.itemsByCategory[activeCategory].push({ name: '', qty: 1, price: 0 });
     scheduleSave();
     render();
     var inputs = rowsEl.querySelectorAll('.name-input');
@@ -599,10 +712,11 @@
   });
 
   function applyRemote(row) {
-    var incomingJson = JSON.stringify({ budget: Number(row.budget) || 0, items: row.items || [] });
+    var normalized = normalizeItems(row.items);
+    var incomingJson = JSON.stringify({ budget: Number(row.budget) || 0, items: normalized });
     if (incomingJson === lastSentJson) return; // eco do próprio salvamento
     state.budget = row.budget;
-    state.items = (row.items && row.items.length) ? row.items : [];
+    state.itemsByCategory = normalized;
     lastSentJson = incomingJson;
     render();
   }
@@ -617,10 +731,15 @@
     }
     if (res.data) {
       state.budget = res.data.budget;
-      state.items = (res.data.items && res.data.items.length) ? res.data.items : defaultItems;
-      lastSentJson = JSON.stringify({ budget: Number(state.budget) || 0, items: state.items });
+      var hasAny = res.data.items && (Array.isArray(res.data.items) ? res.data.items.length : Object.keys(res.data.items).length);
+      state.itemsByCategory = hasAny ? normalizeItems(res.data.items) : defaultItemsByCategory();
+      lastSentJson = JSON.stringify({ budget: Number(state.budget) || 0, items: state.itemsByCategory });
+      // Se os dados vieram no formato antigo, já regrava no novo formato.
+      if (Array.isArray(res.data.items)) {
+        await supabase.from('mercado_state').upsert({ id: ROW_ID, budget: state.budget, items: state.itemsByCategory });
+      }
     } else {
-      await supabase.from('mercado_state').upsert({ id: ROW_ID, budget: 0, items: defaultItems });
+      await supabase.from('mercado_state').upsert({ id: ROW_ID, budget: 0, items: state.itemsByCategory });
     }
     render();
     setSync('live', 'sincronizado');
