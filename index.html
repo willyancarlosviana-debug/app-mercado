@@ -517,8 +517,6 @@
     </div>
   </div>
 
-  <p class="hint">As 3 abas compartilham o mesmo saldo e sincronizam em tempo real entre todos os aparelhos.</p>
-
   <p class="site-footer">© <span id="footerYear"></span> Willyan Viana</p>
 </div>
 
@@ -528,7 +526,7 @@
   var SUPABASE_URL = 'https://rheujziajqjcezvvpfno.supabase.co';
   var SUPABASE_KEY = 'sb_publishable_YSFqv-uAUtarAb1RUzLYBw_ftTjVxfG';
   var ROW_ID = 'default';
-  var CATEGORIES = ['Frutas e Verduras', 'Limpeza', 'Cereais'];
+  var CATEGORIES = ['Frutas e Verduras', 'Carnes', 'Limpeza', 'Cereais e Mercearia'];
 
   var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -585,14 +583,24 @@
   var footerYearEl = document.getElementById('footerYear');
   if (footerYearEl) footerYearEl.textContent = new Date().getFullYear();
 
+  function mkItems(names) {
+    return names.map(function (name) { return { name: name, qty: 1, price: 0 }; });
+  }
+
   function defaultItemsByCategory() {
     return {
-      'Frutas e Verduras': [],
-      'Limpeza': [],
-      'Cereais': [
-        { name: 'Arroz', qty: 1, price: 0 },
-        { name: 'Feijão', qty: 1, price: 0 }
-      ]
+      'Frutas e Verduras': mkItems(['Cebola', 'Alho', 'Milho', 'Maçã', 'Banana']),
+      'Carnes': mkItems(['Salsicha', 'Frango', 'Sardinha']),
+      'Limpeza': mkItems([
+        'Sabão em pó', 'Sabão', 'Pinho Sol', 'Amaciante', 'Absorvente', 'Sabonetes',
+        'Pasta de dente', 'Papel higiênico', 'Papel toalha', 'Desodorante gel',
+        'Sabonete/sabão umedecidos', 'Bom Bril', 'Pano de pia'
+      ]),
+      'Cereais e Mercearia': mkItems([
+        'Farinha', 'Feijão', 'Açúcar', 'Café', 'Leite - fardos', 'Leite condensado',
+        'Creme de leite', 'Biscoitos', 'Iogurtes', 'Extrato de tomate', 'Macarrão/Massa',
+        'Margarina', 'Fermento pão', 'Requeijão', 'Óleo', 'Refil coador'
+      ])
     };
   }
 
@@ -627,9 +635,12 @@
         result[cat] = [];
       }
     });
-    // Formato antigo (lista única, sem categorias): joga tudo em Cereais.
+    // Formato antigo (lista única, sem categorias, ou categoria "Cereais" renomeada): joga tudo em Cereais e Mercearia.
     if (raw && Array.isArray(raw) && raw.length) {
-      result['Cereais'] = result['Cereais'].concat(raw);
+      result['Cereais e Mercearia'] = result['Cereais e Mercearia'].concat(raw);
+    }
+    if (raw && Array.isArray(raw['Cereais']) && raw['Cereais'].length) {
+      result['Cereais e Mercearia'] = result['Cereais e Mercearia'].concat(raw['Cereais']);
     }
     return result;
   }
