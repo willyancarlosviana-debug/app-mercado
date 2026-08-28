@@ -821,7 +821,12 @@
   var ROW_ID = 'default';
   var CATEGORIES = ['Frutas e Verduras', 'Carnes', 'Limpeza', 'Cereais e Mercearia'];
 
-  var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // Se o CDN do supabase-js não carregou (ex: primeira visita offline), o app
+  // continua funcionando só com o cache local em vez de travar.
+  var supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  var realtimeConnected = false;
+  var dirty = false;
+  var LOCAL_CACHE_KEY = 'lista-mercado-cache-v1';
 
   var rowsEl = document.getElementById('rows');
   var budgetInput = document.getElementById('budget');
@@ -950,6 +955,29 @@
     list.sort(function (a, b) {
       return (a.name || '').localeCompare(b.name || '', 'pt-BR', { sensitivity: 'base', numeric: true });
     });
+  }
+
+  // Espelha o estado atual no aparelho, pra abrir instantaneamente (e funcionar
+  // offline) mesmo sem esperar resposta do Supabase.
+  function saveLocalCache() {
+    try {
+      localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify({
+        budget: state.budget,
+        itemsByCategory: state.itemsByCategory
+      }));
+    } catch (e) { /* ignore */ }
+  }
+
+  function loadLocalCache() {
+    try {
+      var raw = localStorage.getItem(LOCAL_CACHE_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || !parsed.itemsByCategory) return null;
+      return parsed;
+    } catch (e) {
+      return null;
+    }
   }
 
   function categoryTotal(cat) {
@@ -1128,6 +1156,12 @@
   }
 
   function scheduleSave() {
+    saveLocalCache();
+    dirty = true;
+    if (!supabase || !navigator.onLine) {
+      setSync('saving', 'offline — editando localmente');
+      return;
+    }
     setSync('saving', 'salvando…');
     clearTimeout(saveTimer);
     saveTimer = setTimeout(persist, 450);
@@ -1147,6 +1181,12 @@
   }
 
   function persist() {
+    saveLocalCache();
+    if (!supabase || !navigator.onLine) {
+      dirty = true;
+      setSync('saving', 'offline — editando localmente');
+      return;
+    }
     var payload = {
       id: ROW_ID,
       budget: Number(state.budget) || 0,
@@ -1156,12 +1196,39 @@
     lastSentJson = JSON.stringify({ budget: payload.budget, items: sortedSnapshot(payload.items) });
     supabase.from('mercado_state').upsert(payload).then(function (res) {
       if (res.error) {
-        setSync('off', 'erro ao salvar');
+        dirty = true;
+        setSync('saving', 'offline — editando localmente');
       } else {
+        dirty = false;
         setSync('live', 'sincronizado');
       }
+    }).catch(function () {
+      dirty = true;
+      setSync('saving', 'offline — editando localmente');
     });
   }
+
+  // Reforça a reconexão além do evento 'online' (que falha com frequência no
+  // iOS): enquanto houver algo pendente, tenta de novo a cada ~20s.
+  var reconnectTimer = null;
+  function ensureReconnectWatch() {
+    if (reconnectTimer) return;
+    reconnectTimer = setInterval(function () {
+      if (dirty && navigator.onLine) tryReconnectAndFlush();
+    }, 20000);
+  }
+
+  function tryReconnectAndFlush() {
+    if (!supabase || !navigator.onLine) return;
+    if (!realtimeConnected) connectRealtime();
+    if (dirty) persist();
+  }
+
+  window.addEventListener('online', tryReconnectAndFlush);
+  window.addEventListener('offline', function () {
+    setSync('saving', 'offline — editando localmente');
+  });
+  ensureReconnectWatch();
 
   budgetInput.addEventListener('input', function (e) {
     state.budget = e.target.value;
@@ -1366,12 +1433,53 @@
     render();
   }
 
+  function connectRealtime() {
+    if (!supabase || realtimeConnected) return;
+    realtimeConnected = true;
+    supabase
+      .channel('mercado_state_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'mercado_state', filter: 'id=eq.' + ROW_ID }, function (payload) {
+        if (payload.new) applyRemote(payload.new);
+      })
+      .subscribe(function (status) {
+        if (status === 'SUBSCRIBED') {
+          setSync('live', 'sincronizado');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          realtimeConnected = false;
+          setSync('saving', 'offline — editando localmente');
+        }
+      });
+  }
+
   async function init() {
-    setSync('saving', 'carregando…');
-    var res = await supabase.from('mercado_state').select('*').eq('id', ROW_ID).maybeSingle();
-    if (res.error) {
-      setSync('off', 'offline');
+    // Mostra o que já está salvo no aparelho na hora, antes mesmo de tentar a rede —
+    // assim o app abre instantaneamente e continua usável se estiver offline.
+    var cached = loadLocalCache();
+    if (cached) {
+      state.budget = cached.budget;
+      state.itemsByCategory = cached.itemsByCategory;
       render();
+    }
+
+    if (!supabase || !navigator.onLine) {
+      setSync('saving', cached ? 'offline — editando localmente' : 'sem conexão');
+      if (!cached) render();
+      ensureReconnectWatch();
+      return;
+    }
+
+    setSync('saving', 'carregando…');
+    var res;
+    try {
+      res = await supabase.from('mercado_state').select('*').eq('id', ROW_ID).maybeSingle();
+    } catch (networkError) {
+      setSync('saving', cached ? 'offline — editando localmente' : 'sem conexão');
+      if (!cached) render();
+      return;
+    }
+    if (res.error) {
+      setSync('saving', cached ? 'offline — editando localmente' : 'sem conexão');
+      if (!cached) render();
       return;
     }
     if (res.data) {
@@ -1386,21 +1494,19 @@
     } else {
       await supabase.from('mercado_state').upsert({ id: ROW_ID, budget: 0, items: state.itemsByCategory });
     }
+    saveLocalCache();
     render();
     setSync('live', 'sincronizado');
-
-    supabase
-      .channel('mercado_state_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'mercado_state', filter: 'id=eq.' + ROW_ID }, function (payload) {
-        if (payload.new) applyRemote(payload.new);
-      })
-      .subscribe(function (status) {
-        if (status === 'SUBSCRIBED') setSync('live', 'sincronizado');
-        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setSync('off', 'offline');
-      });
+    connectRealtime();
   }
 
   init();
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () { /* segue sem cache offline */ });
+    });
+  }
 })();
 
 // PWA: gera ícone e manifest em tempo de execução para permitir "Adicionar à tela inicial"
