@@ -405,6 +405,11 @@
     align-items: center;
     padding: 0.6rem 1rem;
     border-top: 1px solid var(--line);
+    background: transparent;
+    transition: background-color 0.2s ease;
+  }
+  .row.priced {
+    background: var(--accent-soft);
   }
   .row .name-cell {
     grid-area: name;
@@ -1064,8 +1069,8 @@
       var list = state.itemsByCategory[entry.cat];
       var idx = entry.idx;
       var row = document.createElement('div');
-      row.className = 'row';
       var lineTotal = (Number(item.qty) || 0) * (Number(item.price) || 0);
+      row.className = 'row' + (Number(item.price) > 0 ? ' priced' : '');
       row.innerHTML =
         '<div class="name-cell">' +
           (query ? '<span class="item-category-tag">' + escapeHtml(entry.cat) + '</span>' : '') +
@@ -1116,8 +1121,11 @@
     var rowEls = rowsEl.querySelectorAll('.row');
     entries.forEach(function (entry, i) {
       var lineTotal = (Number(entry.item.qty) || 0) * (Number(entry.item.price) || 0);
-      var totalEl = rowEls[i] && rowEls[i].querySelector('.line-total');
+      var rowEl = rowEls[i];
+      if (!rowEl) return;
+      var totalEl = rowEl.querySelector('.line-total');
       if (totalEl) totalEl.textContent = formatBRL(lineTotal);
+      rowEl.classList.toggle('priced', Number(entry.item.price) > 0);
     });
     if (!query) renderTabs();
     updateBalance();
