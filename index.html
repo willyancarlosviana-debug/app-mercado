@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lista de Mercado</title>
-<meta name="theme-color" content="#4A7C59">
+<meta name="theme-color" content="#1C9A6C">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,45 +12,46 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
   :root {
-    --ground: #FBF8F2;
-    --surface: #FFFFFF;
-    --surface-2: #F3EEE2;
-    --line: #E4DCC9;
-    --ink: #2B2621;
-    --ink-soft: #6B6255;
-    --accent: #4A7C59;
-    --accent-soft: #E4EFE3;
-    --warn: #B84A3E;
-    --warn-soft: #F7E4E0;
-    --shadow: 0 1px 2px rgba(43,38,33,0.06), 0 6px 20px rgba(43,38,33,0.05);
+    --ground: #F4F3FA;
+    --surface: rgba(255,255,255,0.72);
+    --surface-2: rgba(23,21,31,0.04);
+    --line: rgba(23,21,31,0.09);
+    --ink: #17151F;
+    --ink-soft: #6B6780;
+    --accent: #1C9A6C;
+    --accent-soft: #E0F3EA;
+    --warn: #D8503A;
+    --warn-soft: #FBE7E2;
+    --shadow: 0 1px 2px rgba(23,21,31,0.05), 0 10px 28px rgba(23,21,31,0.08);
+    --blur: blur(16px);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --ground: #1B1814;
-      --surface: #242019;
-      --surface-2: #2C2720;
-      --line: #3B342A;
-      --ink: #EDE6D8;
-      --ink-soft: #A79C89;
-      --accent: #7FB58C;
-      --accent-soft: #26332A;
-      --warn: #E08175;
-      --warn-soft: #3A2521;
-      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+      --ground: #100F16;
+      --surface: rgba(255,255,255,0.055);
+      --surface-2: rgba(255,255,255,0.03);
+      --line: rgba(255,255,255,0.08);
+      --ink: #F2F0FA;
+      --ink-soft: #8B87A0;
+      --accent: #7AE0B4;
+      --accent-soft: rgba(122,224,180,0.14);
+      --warn: #FF8C78;
+      --warn-soft: rgba(255,140,120,0.14);
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.4);
     }
   }
   :root[data-theme="dark"] {
-    --ground: #1B1814;
-    --surface: #242019;
-    --surface-2: #2C2720;
-    --line: #3B342A;
-    --ink: #EDE6D8;
-    --ink-soft: #A79C89;
-    --accent: #7FB58C;
-    --accent-soft: #26332A;
-    --warn: #E08175;
-    --warn-soft: #3A2521;
-    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    --ground: #100F16;
+    --surface: rgba(255,255,255,0.055);
+    --surface-2: rgba(255,255,255,0.03);
+    --line: rgba(255,255,255,0.08);
+    --ink: #F2F0FA;
+    --ink-soft: #8B87A0;
+    --accent: #7AE0B4;
+    --accent-soft: rgba(122,224,180,0.14);
+    --warn: #FF8C78;
+    --warn-soft: rgba(255,140,120,0.14);
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.4);
   }
 
   * { box-sizing: border-box; }
@@ -84,7 +85,7 @@
   h1 {
     font-family: 'Bricolage Grotesque', system-ui, sans-serif;
     font-size: clamp(1.8rem, 5vw, 2.4rem);
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: -0.01em;
     margin: 0 0 1.75rem;
     text-wrap: balance;
@@ -100,6 +101,8 @@
     padding: 0.3rem 0.6rem;
     border-radius: 999px;
     background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
     border: 1px solid var(--line);
     white-space: nowrap;
     margin-top: 0.15rem;
@@ -131,6 +134,8 @@
     border-radius: 999px;
     border: 1px solid var(--line);
     background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
     color: var(--ink-soft);
     cursor: pointer;
     transition: border-color 0.15s ease, color 0.15s ease;
@@ -147,17 +152,21 @@
     border-radius: 999px;
     border: 1px solid var(--line);
     background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
     color: var(--ink-soft);
     font-family: 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.78rem;
     cursor: pointer;
     white-space: nowrap;
-    transition: border-color 0.15s ease, color 0.15s ease;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
   }
   .reset-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
   .reset-btn:hover { border-color: var(--warn); color: var(--warn); }
   .reset-btn.accent-hover:hover { border-color: var(--accent); color: var(--accent); }
+  .reset-btn.accent-tint { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  #resetBtn { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); }
 
   @media (max-width: 480px) {
     .reset-btn span.reset-label { display: none; }
@@ -166,8 +175,10 @@
   /* Budget panel */
   .budget-panel {
     background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 20px;
     box-shadow: var(--shadow);
     padding: 1.5rem;
     display: grid;
@@ -342,9 +353,11 @@
     align-items: flex-start;
     gap: 0.2rem;
     padding: 0.65rem 0.85rem;
-    border-radius: 10px;
+    border-radius: 14px;
     border: 1px solid var(--line);
     background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
     cursor: pointer;
     font-family: 'Inter', sans-serif;
     text-align: left;
@@ -381,8 +394,10 @@
   /* List */
   .list-card {
     background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 20px;
     box-shadow: var(--shadow);
     overflow: hidden;
   }
@@ -622,8 +637,10 @@
 
   .plan-list {
     background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
   }
   .plan-row {
@@ -726,8 +743,10 @@
 
   .history-entry {
     background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: 16px;
     margin-bottom: 0.85rem;
     overflow: hidden;
   }
@@ -852,7 +871,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         <span class="reset-label">Planejar compra</span>
       </button>
-      <button class="reset-btn accent-hover" id="finalizeBtn" type="button" title="Guardar esta compra no histórico">
+      <button class="reset-btn accent-tint" id="finalizeBtn" type="button" title="Guardar esta compra no histórico">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
         <span class="reset-label">Finalizar compra</span>
       </button>
@@ -1831,8 +1850,8 @@
       start_url: '.',
       scope: '.',
       display: 'standalone',
-      background_color: '#FBF8F2',
-      theme_color: '#4A7C59',
+      background_color: '#100F16',
+      theme_color: '#1C9A6C',
       icons: [
         { src: icon192, sizes: '192x192', type: 'image/jpeg', purpose: 'any maskable' },
         { src: icon512, sizes: '512x512', type: 'image/jpeg', purpose: 'any maskable' }
