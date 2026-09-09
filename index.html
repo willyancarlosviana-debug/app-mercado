@@ -117,6 +117,8 @@
   .top-actions {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 0.5rem;
   }
   .theme-toggle {
@@ -155,6 +157,7 @@
   }
   .reset-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
   .reset-btn:hover { border-color: var(--warn); color: var(--warn); }
+  .reset-btn.accent-hover:hover { border-color: var(--accent); color: var(--accent); }
 
   @media (max-width: 480px) {
     .reset-btn span.reset-label { display: none; }
@@ -703,6 +706,96 @@
   }
   .planning-footer .go-shopping:hover { filter: brightness(0.93); }
 
+  /* Histórico */
+  .history-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.82rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    margin-bottom: 1.25rem;
+  }
+  .history-back:hover { border-color: var(--accent); color: var(--accent); }
+
+  .history-entry {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    margin-bottom: 0.85rem;
+    overflow: hidden;
+  }
+  .history-entry summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.85rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .history-entry summary::-webkit-details-marker { display: none; }
+  .history-entry summary .date {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .history-entry summary .date .budget-note {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-top: 0.15rem;
+  }
+  .history-entry summary .total {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .history-body {
+    padding: 0 1rem 1rem;
+    border-top: 1px solid var(--line);
+  }
+  .history-cat { margin-top: 0.85rem; }
+  .history-cat .name {
+    font-weight: 600;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.4rem;
+  }
+  .history-item-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.3rem 0;
+    font-size: 0.85rem;
+    border-top: 1px solid var(--line);
+  }
+  .history-item-row:first-of-type { border-top: none; }
+  .history-item-row .qty {
+    color: var(--ink-soft);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    margin-left: 0.4rem;
+  }
+  .history-item-row .price {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+
   @media (max-width: 560px) {
     .list-head { display: none; }
 
@@ -751,9 +844,17 @@
       <h1>Lista de Mercado</h1>
     </div>
     <div class="top-actions">
-      <button class="reset-btn" id="planBtn" type="button" title="Escolher quais itens entram nesta compra">
+      <button class="reset-btn accent-hover" id="historyBtn" type="button" title="Ver compras já finalizadas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        <span class="reset-label">Histórico</span>
+      </button>
+      <button class="reset-btn accent-hover" id="planBtn" type="button" title="Escolher quais itens entram nesta compra">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         <span class="reset-label">Planejar compra</span>
+      </button>
+      <button class="reset-btn accent-hover" id="finalizeBtn" type="button" title="Guardar esta compra no histórico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <span class="reset-label">Finalizar compra</span>
       </button>
       <button class="reset-btn" id="resetBtn" type="button" title="Zerar quantidades, valores e saldo para uma nova compra">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
@@ -814,6 +915,8 @@
   </div>
 
   <div class="planning-view" id="planningView" style="display:none;"></div>
+
+  <div class="history-view" id="historyView" style="display:none;"></div>
 
   <p class="site-footer">© <span id="footerYear"></span> Willyan Viana</p>
 </div>
@@ -1222,7 +1325,7 @@
   function ensureReconnectWatch() {
     if (reconnectTimer) return;
     reconnectTimer = setInterval(function () {
-      if (dirty && navigator.onLine) tryReconnectAndFlush();
+      if ((dirty || hasPendingHistory()) && navigator.onLine) tryReconnectAndFlush();
     }, 20000);
   }
 
@@ -1230,6 +1333,44 @@
     if (!supabase || !navigator.onLine) return;
     if (!realtimeConnected) connectRealtime();
     if (dirty) persist();
+    if (hasPendingHistory()) flushHistoryQueue();
+  }
+
+  // Fila de compras "finalizadas" enquanto offline — reaproveita a mesma
+  // ideia de fila/reconexão já usada pra lista principal (dirty/persist).
+  var HISTORY_QUEUE_KEY = 'lista-mercado-history-queue-v1';
+
+  function loadHistoryQueue() {
+    try {
+      var raw = localStorage.getItem(HISTORY_QUEUE_KEY);
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveHistoryQueueList(list) {
+    try { localStorage.setItem(HISTORY_QUEUE_KEY, JSON.stringify(list)); } catch (e) { /* ignore */ }
+  }
+
+  function hasPendingHistory() {
+    return loadHistoryQueue().length > 0;
+  }
+
+  function queueHistorySnapshot(snapshot) {
+    var list = loadHistoryQueue();
+    list.push(snapshot);
+    saveHistoryQueueList(list);
+  }
+
+  function flushHistoryQueue() {
+    if (!supabase || !navigator.onLine) return;
+    var list = loadHistoryQueue();
+    if (!list.length) return;
+    supabase.from('mercado_history').insert(list).then(function (res) {
+      if (!res.error) saveHistoryQueueList([]);
+    }).catch(function () { /* tenta de novo na próxima checagem */ });
   }
 
   window.addEventListener('online', tryReconnectAndFlush);
@@ -1278,7 +1419,8 @@
     var ok = window.confirm(
       'Zerar quantidade, valor e saldo para começar uma nova compra?\n\n' +
       'Os nomes dos itens de cada aba continuam os mesmos, mas você vai escolher de novo quais entram ' +
-      'nesta lista na tela de planejamento. Isso afeta o app de quem mais estiver com ele aberto.'
+      'nesta lista na tela de planejamento. Isso afeta o app de quem mais estiver com ele aberto.\n\n' +
+      'Se quiser guardar a compra atual no histórico, use "Finalizar compra" antes de zerar.'
     );
     if (!ok) return;
 
@@ -1326,6 +1468,155 @@
     planningViewEl.style.display = 'none';
     shoppingViewEl.style.display = '';
   }
+
+  // Histórico: "Finalizar compra" guarda um retrato da compra atual (sem
+  // mexer na lista ativa); a aba "Histórico" só lê o que já foi guardado.
+  var historyBtn = document.getElementById('historyBtn');
+  var finalizeBtn = document.getElementById('finalizeBtn');
+  var historyViewEl = document.getElementById('historyView');
+
+  function formatHistoryDate(iso) {
+    try {
+      return new Date(iso).toLocaleString('pt-BR', {
+        day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+    } catch (e) {
+      return iso;
+    }
+  }
+
+  finalizeBtn.addEventListener('click', function () {
+    var total = grandTotal();
+    var ok = window.confirm(
+      'Guardar esta compra no histórico de hoje?\n\n' +
+      'Salva os itens, quantidades e valores de agora (total ' + formatBRL(total) + ') como uma compra concluída. ' +
+      'A lista atual continua exatamente como está — nada é zerado.'
+    );
+    if (!ok) return;
+
+    var snapshot = {
+      purchased_at: new Date().toISOString(),
+      budget: Number(state.budget) || 0,
+      total_spent: total,
+      items: state.itemsByCategory
+    };
+
+    if (!supabase || !navigator.onLine) {
+      queueHistorySnapshot(snapshot);
+      window.alert('Sem internet agora — a compra ficou guardada no aparelho e envia sozinha assim que a conexão voltar.');
+      return;
+    }
+
+    supabase.from('mercado_history').insert(snapshot).then(function (res) {
+      if (res.error) {
+        queueHistorySnapshot(snapshot);
+      }
+    }).catch(function () {
+      queueHistorySnapshot(snapshot);
+    });
+  });
+
+  function openHistory() {
+    if (planningDraft) closePlanning();
+    shoppingViewEl.style.display = 'none';
+    historyViewEl.style.display = '';
+    renderHistoryView();
+  }
+
+  function closeHistory() {
+    historyViewEl.style.display = 'none';
+    shoppingViewEl.style.display = '';
+  }
+
+  async function renderHistoryView() {
+    historyViewEl.innerHTML = '';
+
+    var header = document.createElement('div');
+    header.className = 'planning-header';
+    header.innerHTML = '<div><p class="eyebrow">Balanço</p><h2>Histórico de compras</h2></div>';
+    historyViewEl.appendChild(header);
+
+    var backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'history-back';
+    backBtn.textContent = '← Voltar às compras';
+    backBtn.addEventListener('click', closeHistory);
+    historyViewEl.appendChild(backBtn);
+
+    if (!supabase || !navigator.onLine) {
+      var offlineMsg = document.createElement('div');
+      offlineMsg.className = 'empty-state';
+      offlineMsg.textContent = 'Sem conexão agora — o histórico precisa de internet pra carregar.';
+      historyViewEl.appendChild(offlineMsg);
+      return;
+    }
+
+    var loading = document.createElement('div');
+    loading.className = 'empty-state';
+    loading.textContent = 'Carregando…';
+    historyViewEl.appendChild(loading);
+
+    var res;
+    try {
+      res = await supabase.from('mercado_history').select('*').order('purchased_at', { ascending: false }).limit(50);
+    } catch (e) {
+      loading.textContent = 'Não deu pra carregar o histórico agora.';
+      return;
+    }
+    if (res.error) {
+      loading.textContent = 'Não deu pra carregar o histórico agora.';
+      return;
+    }
+
+    loading.remove();
+
+    var rows = res.data || [];
+    if (!rows.length) {
+      var empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.textContent = 'Nenhuma compra finalizada ainda. Use "Finalizar compra" ao terminar uma compra pra ela aparecer aqui.';
+      historyViewEl.appendChild(empty);
+      return;
+    }
+
+    rows.forEach(function (row) {
+      var entry = document.createElement('details');
+      entry.className = 'history-entry';
+
+      var summary = document.createElement('summary');
+      summary.innerHTML =
+        '<span class="date">' + formatHistoryDate(row.purchased_at) +
+        '<span class="budget-note">Saldo definido: ' + formatBRL(Number(row.budget) || 0) + '</span></span>' +
+        '<span class="total">' + formatBRL(Number(row.total_spent) || 0) + '</span>';
+      entry.appendChild(summary);
+
+      var body = document.createElement('div');
+      body.className = 'history-body';
+      var itemsByCat = normalizeItems(row.items);
+      CATEGORIES.forEach(function (cat) {
+        var items = (itemsByCat[cat] || []).filter(function (item) { return item.included !== false; });
+        if (!items.length) return;
+        var catEl = document.createElement('div');
+        catEl.className = 'history-cat';
+        catEl.innerHTML = '<div class="name">' + escapeHtml(cat) + '</div>';
+        items.forEach(function (item) {
+          var lineTotal = (Number(item.qty) || 0) * (Number(item.price) || 0);
+          var rowEl = document.createElement('div');
+          rowEl.className = 'history-item-row';
+          rowEl.innerHTML =
+            '<span>' + escapeHtml(item.name || '') + '<span class="qty">×' + (Number(item.qty) || 0) + '</span></span>' +
+            '<span class="price">' + formatBRL(lineTotal) + '</span>';
+          catEl.appendChild(rowEl);
+        });
+        body.appendChild(catEl);
+      });
+      entry.appendChild(body);
+
+      historyViewEl.appendChild(entry);
+    });
+  }
+
+  historyBtn.addEventListener('click', openHistory);
 
   function updatePlanningCounter() {
     var n = 0;
