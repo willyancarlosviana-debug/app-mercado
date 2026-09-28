@@ -1288,7 +1288,7 @@
   function scheduleSave() {
     saveLocalCache();
     dirty = true;
-    if (!supabase || !navigator.onLine) {
+    if (!supabase) {
       setSync('saving', 'offline — editando localmente');
       return;
     }
@@ -1312,7 +1312,7 @@
 
   function persist() {
     saveLocalCache();
-    if (!supabase || !navigator.onLine) {
+    if (!supabase) {
       dirty = true;
       setSync('saving', 'offline — editando localmente');
       return;
@@ -1344,12 +1344,12 @@
   function ensureReconnectWatch() {
     if (reconnectTimer) return;
     reconnectTimer = setInterval(function () {
-      if ((dirty || hasPendingHistory()) && navigator.onLine) tryReconnectAndFlush();
+      if (dirty || hasPendingHistory()) tryReconnectAndFlush();
     }, 20000);
   }
 
   function tryReconnectAndFlush() {
-    if (!supabase || !navigator.onLine) return;
+    if (!supabase) return;
     if (!realtimeConnected) connectRealtime();
     if (dirty) persist();
     if (hasPendingHistory()) flushHistoryQueue();
@@ -1384,7 +1384,7 @@
   }
 
   function flushHistoryQueue() {
-    if (!supabase || !navigator.onLine) return;
+    if (!supabase) return;
     var list = loadHistoryQueue();
     if (!list.length) return;
     supabase.from('mercado_history').insert(list).then(function (res) {
@@ -1520,7 +1520,7 @@
       items: state.itemsByCategory
     };
 
-    if (!supabase || !navigator.onLine) {
+    if (!supabase) {
       queueHistorySnapshot(snapshot);
       window.alert('Sem internet agora — a compra ficou guardada no aparelho e envia sozinha assim que a conexão voltar.');
       return;
@@ -1562,7 +1562,7 @@
     backBtn.addEventListener('click', closeHistory);
     historyViewEl.appendChild(backBtn);
 
-    if (!supabase || !navigator.onLine) {
+    if (!supabase) {
       var offlineMsg = document.createElement('div');
       offlineMsg.className = 'empty-state';
       offlineMsg.textContent = 'Sem conexão agora — o histórico precisa de internet pra carregar.';
@@ -1779,7 +1779,7 @@
       render();
     }
 
-    if (!supabase || !navigator.onLine) {
+    if (!supabase) {
       setSync('saving', cached ? 'offline — editando localmente' : 'sem conexão');
       if (!cached) render();
       ensureReconnectWatch();
