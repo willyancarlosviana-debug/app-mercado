@@ -1201,7 +1201,7 @@
         '<div class="qty-field"><span class="field-label">Qtd.</span><input type="number" class="qty-input" min="0" step="1" inputmode="numeric" value="' + (item.qty !== '' && item.qty !== undefined ? item.qty : '') + '"></div>' +
         '<div class="unit-field"><span class="field-label">Unit.</span><input type="number" class="price-input" min="0" step="0.01" inputmode="decimal" value="' + (item.price !== '' && item.price !== undefined ? item.price : '') + '"></div>' +
         '<span class="line-total">' + formatBRL(lineTotal) + '</span>' +
-        '<button type="button" class="remove" aria-label="Remover item" title="Remover item">×</button>';
+        '<button type="button" class="remove" aria-label="Tirar desta lista" title="Tirar desta lista (continua em Planejar compra)">×</button>';
 
       row.querySelector('.name-input').addEventListener('input', function (e) {
         list[idx].name = e.target.value;
@@ -1224,7 +1224,9 @@
         renderTotalsOnly();
       });
       row.querySelector('.remove').addEventListener('click', function () {
-        list.splice(idx, 1);
+        // Tira o item só desta compra (não apaga do catálogo): ele some daqui,
+        // mas continua disponível para remarcar em "Planejar compra".
+        list[idx].included = false;
         scheduleSave();
         render();
       });
