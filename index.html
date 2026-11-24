@@ -1662,13 +1662,45 @@
   var planningDraft = null;
 
   // Só uma tela aparece por vez: home | shopping | planning | history
-  function showView(name) {
+  var currentView = 'home';
+  function showViewDom(name) {
+    currentView = name;
     homeViewEl.style.display = name === 'home' ? '' : 'none';
     shoppingViewEl.style.display = name === 'shopping' ? '' : 'none';
     planningViewEl.style.display = name === 'planning' ? '' : 'none';
     document.getElementById('historyView').style.display = name === 'history' ? '' : 'none';
     window.scrollTo(0, 0);
   }
+
+  // Cada tela entra no histórico do navegador: assim o botão/gesto de "voltar"
+  // do celular volta para a tela inicial em vez de fechar o app.
+  try { history.replaceState({ v: 'home' }, ''); } catch (e) {}
+  function showView(name) {
+    if (name === 'home') {
+      if (history.state && history.state.v && history.state.v !== 'home') {
+        history.back();            // o popstate abaixo mostra a tela inicial
+        return;
+      }
+      showViewDom('home');
+      return;
+    }
+    try {
+      var noMenu = !(history.state && history.state.layer); // vindo do menu: reaproveita a entrada
+      if (currentView === 'home' && noMenu) history.pushState({ v: name }, '');
+      else history.replaceState({ v: name }, '');
+    } catch (e) {}
+    showViewDom(name);
+  }
+  window.addEventListener('popstate', function (e) {
+    // fecha menu e popup se estiverem abertos; depois mostra a tela do histórico
+    var d = document.getElementById('drawer');
+    var m = document.getElementById('addModal');
+    if (d) d.hidden = true;
+    if (m) m.hidden = true;
+    var v = (e.state && e.state.v) || 'home';
+    if (v === 'planning' && !planningDraft) v = 'home';
+    showViewDom(v);
+  });
 
   function cloneItemsByCategory(src) {
     var out = {};
@@ -2048,8 +2080,16 @@
   document.getElementById('backFromList').addEventListener('click', function () { showView('home'); });
 
   var drawerEl = document.getElementById('drawer');
-  function openDrawer() { drawerEl.hidden = false; }
-  function closeDrawer() { drawerEl.hidden = true; }
+  // Menu e popup também entram no histórico: "voltar" fecha o menu/popup primeiro.
+  function openLayer(name) {
+    try { history.pushState({ v: currentView, layer: name }, ''); } catch (e) {}
+  }
+  function closeLayer(el) {
+    if (history.state && history.state.layer) { history.back(); return; }
+    el.hidden = true;
+  }
+  function openDrawer() { drawerEl.hidden = false; openLayer('drawer'); }
+  function closeDrawer() { closeLayer(drawerEl); }
   document.getElementById('menuBtn').addEventListener('click', openDrawer);
   document.getElementById('drawerClose').addEventListener('click', closeDrawer);
   document.getElementById('drawerBg').addEventListener('click', closeDrawer);
@@ -2067,10 +2107,11 @@
   });
   function openAddModal() {
     addModalEl.hidden = false;
+    openLayer('add');
     addNameEl.value = '';
     setTimeout(function () { addNameEl.focus(); }, 50);
   }
-  function closeAddModal() { addModalEl.hidden = true; }
+  function closeAddModal() { closeLayer(addModalEl); }
   function addNewItem() {
     var name = addNameEl.value.trim();
     if (!name) { addNameEl.focus(); return; }
