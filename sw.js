@@ -3,7 +3,7 @@
 // caindo para o cache só quando a rede falhar de verdade — evita ficar preso
 // numa versão antiga do app, mas garante que ele ainda abre sem internet.
 
-var CACHE_NAME = 'lista-mercado-v1';
+var CACHE_NAME = 'lista-mercado-v2';
 var PRECACHE_URLS = [
   './',
   './index.html',
