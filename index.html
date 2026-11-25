@@ -663,6 +663,11 @@
     accent-color: var(--accent);
     flex-shrink: 0;
   }
+  .plan-row .plan-del {
+    margin-left: auto; border: 1px solid var(--warn); background: var(--warn-soft); color: var(--warn);
+    border-radius: 999px; padding: 0.35rem 0.85rem; font-family: 'Inter', sans-serif; font-weight: 600;
+    font-size: 0.78rem; cursor: pointer;
+  }
   .plan-add-row {
     display: flex;
     gap: 0.5rem;
@@ -966,6 +971,58 @@
     background: #17151F; color: #fff; padding: 0.7rem 1.1rem; border-radius: 999px; font-size: 0.85rem;
     z-index: 80; box-shadow: 0 10px 30px rgba(0,0,0,0.4); max-width: 90%; text-align: center;
   }
+
+  /* ===== Cabeçalho enxuto e cartão compacto da lista ===== */
+  .page { padding-top: calc(1.1rem + env(safe-area-inset-top)); }
+  .top-row { margin-bottom: 1rem; gap: 0.6rem; }
+  .brand { gap: 0.65rem; flex: 1; }
+  .brand h1 { font-size: clamp(1.2rem, 5.6vw, 2rem); line-height: 1.15; }
+  .brand-logo { cursor: pointer; width: 42px; height: 42px; }
+  .menu-btn { position: relative; flex-shrink: 0; }
+  .net-dot { position: absolute; top: 2px; right: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--warn); border: 2px solid var(--ground); }
+  .net-dot[hidden], .finalize-big[hidden] { display: none; }
+  .finalize-big { padding: 0.65rem 0.9rem; font-size: 0.85rem; white-space: nowrap; flex-shrink: 0; }
+  .saldo2 .tap { font-size: 0.68rem; margin-top: 0.2rem; opacity: 0.75; }
+  .saldo2, .saldo-mini { transition: background 0.4s ease, box-shadow 0.4s ease; }
+
+  .saldo-mini {
+    border-radius: 22px; padding: 0.8rem 1rem; margin-bottom: 0.85rem; color: #fff;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: linear-gradient(150deg, #1f9e6c, #0c6b49 55%, #063a29);
+  }
+  .saldo-mini .sm-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 0.75rem; }
+  .saldo-mini label { display: block; font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85; }
+  .saldo-mini .balance-value, .saldo-mini .balance-value.ok, .saldo-mini .balance-value.over { color: #fff; border: none; padding: 0; font-size: 1.5rem; line-height: 1.2; }
+  .saldo-mini .sm-pct { text-align: right; font-family: 'IBM Plex Mono', monospace; }
+  .saldo-mini .sm-pct b { font-size: 1.1rem; }
+  .saldo-mini .sm-pct small { display: block; font-size: 0.62rem; opacity: 0.85; }
+  .saldo-mini .bar { height: 6px; background: rgba(255,255,255,0.22); border-radius: 999px; overflow: hidden; margin: 0.5rem 0; }
+  .saldo-mini .bar-fill, .saldo-mini .bar-fill.over { height: 100%; background: #fff; border-radius: 999px; transition: width 0.25s ease; }
+  .saldo-mini .sm-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.3rem 0.8rem; font-size: 0.74rem; }
+  .saldo-mini .sm-bottom b { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+  .saldo-mini .pill, .saldo-mini .pill.ok, .saldo-mini .pill.over { background: rgba(255,255,255,0.18); color: #fff; font-size: 0.66rem; }
+  .budget-field { margin-bottom: 1rem; }
+  .budget-field input { font-size: 1.9rem; }
+  @media (max-width: 520px) {
+    .page { padding-left: 0.85rem; padding-right: 0.85rem; }
+    .top-row { gap: 0.45rem; }
+    .brand { gap: 0.5rem; }
+    .brand h1 { font-size: clamp(0.98rem, 5vw, 1.6rem); white-space: nowrap; }
+    .brand-logo { width: 36px; height: 36px; border-radius: 10px; }
+    .top-tools { gap: 0.35rem; }
+    .menu-btn { width: 2.35rem; height: 2.35rem; }
+    .finalize-big { padding: 0.55rem 0.7rem; font-size: 0.78rem; }
+    /* abas das categorias com o nome inteiro, deslizando para o lado */
+    .category-tabs { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .category-tabs::-webkit-scrollbar { display: none; }
+    .category-tab { flex: 0 0 auto; }
+    .category-tab .tab-name { font-size: 0.8rem; }
+    .category-tab .tab-sub { font-size: 0.7rem; white-space: nowrap; }
+    .saldo2 { gap: 0.8rem; padding: 1.1rem 0.95rem; }
+    .saldo2 .ring { width: 90px; height: 90px; flex-basis: 90px; }
+    .saldo2 .mini { font-size: 0.7rem; }
+    .saldo2 .mini span, .saldo2 .mini b { white-space: nowrap; }
+  }
 </style>
 </head>
 <body>
@@ -973,22 +1030,20 @@
 <div class="page">
   <div class="top-row">
     <div class="brand">
-      <img class="brand-logo" src="logo/icon-192.png" alt="" width="46" height="46">
-      <div>
-        <p class="eyebrow">Controle de compras</p>
-        <h1>Lista de Mercado</h1>
-      </div>
+      <img class="brand-logo" id="brandLogo" src="logo/icon-192.png" alt="Início" title="Voltar ao início" width="46" height="46">
+      <h1 id="pageTitle">Lista de Mercado</h1>
     </div>
     <div class="top-tools">
-      <span class="sync-warn" id="syncWarn" hidden>● offline</span>
+      <button class="finalize-big" id="finalizeBtn" type="button" hidden>✓ Finalizar</button>
       <button class="menu-btn" id="menuBtn" type="button" aria-label="Mais opções" title="Mais opções">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <span class="net-dot" id="syncWarn" title="Sem conexão" hidden></span>
       </button>
     </div>
   </div>
 
   <div id="homeView">
-    <div class="saldo2" id="homeSaldo" title="Toque para ver a lista e mudar o saldo">
+    <div class="saldo2" id="homeSaldo" role="button" tabindex="0" title="Toque para cadastrar o saldo da compra">
       <div class="ring">
         <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="12"/><circle id="homeRing" cx="60" cy="60" r="50" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 314" transform="rotate(-90 60 60)"/></svg>
         <div class="rp"><b id="homePct">0%</b><small>usado</small></div>
@@ -999,6 +1054,7 @@
         <div class="mini"><span>Saldo para compra</span><b id="homeBudget">R$ 0,00</b></div>
         <div class="mini"><span>Gasto previsto</span><b id="homeSpent">R$ 0,00</b></div>
         <div class="ok2" id="homeStatus">● dentro do saldo</div>
+        <div class="tap">Toque para cadastrar o saldo</div>
       </div>
     </div>
 
@@ -1023,28 +1079,20 @@
   </div>
 
   <div id="shoppingView" style="display:none;">
-    <div class="view-bar">
-      <button class="history-back" id="backFromList" type="button">← Início</button>
-      <button class="finalize-big" id="finalizeBtn" type="button">✓ Finalizar compra</button>
-    </div>
-    <div class="budget-panel">
-      <div class="field">
-        <label for="budget">Saldo para compra</label>
-        <div class="money-input">
-          <span>R$</span>
-          <input type="number" id="budget" inputmode="decimal" step="0.01" min="0" placeholder="0,00">
+    <div class="saldo-mini" id="listSaldo">
+      <div class="sm-top">
+        <div>
+          <label>Saldo restante</label>
+          <div class="balance-value ok" id="balanceValue">R$ 0,00</div>
         </div>
+        <div class="sm-pct"><b id="statusPct">0%</b><small>usado</small></div>
       </div>
-      <div class="field">
-        <label>Saldo restante</label>
-        <div class="balance-value ok" id="balanceValue">R$ 0,00</div>
-      </div>
-    </div>
-
-    <div class="status-strip">
-      <span class="pill ok" id="statusPill">dentro do saldo</span>
       <div class="bar"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
-      <span id="statusPct">0%</span>
+      <div class="sm-bottom">
+        <span>Saldo <b id="listBudget">R$ 0,00</b></span>
+        <span>Gasto <b id="listSpent">R$ 0,00</b></span>
+        <span class="pill ok" id="statusPill">dentro do saldo</span>
+      </div>
     </div>
 
     <div class="search-bar">
@@ -1094,6 +1142,21 @@
     <button class="reset-btn drawer-btn" id="resetBtn" type="button">Nova lista (zerar sem guardar)</button>
     <p class="drawer-note">Para guardar a compra no histórico, use "Finalizar compra" na Lista de compra.</p>
   </aside>
+</div>
+
+<div class="modal" id="budgetModal" hidden>
+  <div class="modal-bg" id="budgetModalBg"></div>
+  <div class="modal-box">
+    <h2>Saldo para compra</h2>
+    <p>Quanto você tem para esta compra? O restante é calculado sozinho.</p>
+    <div class="money-input budget-field">
+      <span>R$</span>
+      <input type="number" id="budget" inputmode="decimal" step="0.01" min="0" placeholder="0,00">
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="m-ok" id="budgetOk">Salvar</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal" id="addModal" hidden>
@@ -1406,7 +1469,9 @@
       row.querySelector('.remove').addEventListener('click', function () {
         // Tira o item só desta compra (não apaga do catálogo): ele some daqui,
         // mas continua disponível para remarcar em "Planejar compra".
-        list[idx].included = false;
+        // Item sem nome não tem por que ficar guardado: é excluído de vez.
+        if (!String(list[idx].name || '').trim()) list.splice(idx, 1);
+        else list[idx].included = false;
         scheduleSave();
         render();
       });
@@ -1436,6 +1501,27 @@
     updateFooter(query, entries);
   }
 
+  // Cor do cartão conforme o gasto: verde -> amarelo -> laranja -> vermelho.
+  function paintBudgetCards(pct) {
+    var p = Math.max(0, Math.min(100, pct));
+    var stops = [[0, 154], [45, 125], [65, 52], [82, 28], [100, 2]];
+    var hue = 2;
+    for (var i = 1; i < stops.length; i++) {
+      if (p <= stops[i][0]) {
+        var a = stops[i - 1], b = stops[i];
+        hue = a[1] + (b[1] - a[1]) * ((p - a[0]) / (b[0] - a[0]));
+        break;
+      }
+    }
+    var bg = 'linear-gradient(150deg, hsl(' + hue + ',68%,37%), hsl(' + hue + ',72%,26%) 55%, hsl(' + hue + ',76%,13%))';
+    ['homeSaldo', 'listSaldo'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.style.background = bg;
+      el.style.boxShadow = '0 14px 38px -14px hsl(' + hue + ',72%,30%)';
+    });
+  }
+
   function updateBalance() {
     var total = grandTotal();
     var budget = Number(state.budget) || 0;
@@ -1452,6 +1538,10 @@
     barFill.style.width = pct + '%';
     barFill.className = 'bar-fill' + (over ? ' over' : '');
     statusPct.textContent = Math.round(budget > 0 ? (total / budget) * 100 : 0) + '%';
+
+    document.getElementById('listBudget').textContent = formatBRL(budget);
+    document.getElementById('listSpent').textContent = formatBRL(total);
+    paintBudgetCards(pct);
 
     // Cartão de saldo da tela inicial
     var rawPct = budget > 0 ? (total / budget) * 100 : 0;
@@ -1663,8 +1753,11 @@
 
   // Só uma tela aparece por vez: home | shopping | planning | history
   var currentView = 'home';
+  var VIEW_TITLES = { home: 'Lista de Mercado', shopping: 'Lista de compra', planning: 'Planejar compra', history: 'Histórico' };
   function showViewDom(name) {
     currentView = name;
+    document.getElementById('pageTitle').textContent = VIEW_TITLES[name] || VIEW_TITLES.home;
+    document.getElementById('finalizeBtn').hidden = name !== 'shopping';
     homeViewEl.style.display = name === 'home' ? '' : 'none';
     shoppingViewEl.style.display = name === 'shopping' ? '' : 'none';
     planningViewEl.style.display = name === 'planning' ? '' : 'none';
@@ -1697,6 +1790,8 @@
     var m = document.getElementById('addModal');
     if (d) d.hidden = true;
     if (m) m.hidden = true;
+    var bm = document.getElementById('budgetModal');
+    if (bm) bm.hidden = true;
     var v = (e.state && e.state.v) || 'home';
     if (v === 'planning' && !planningDraft) v = 'home';
     showViewDom(v);
@@ -1806,18 +1901,6 @@
   async function renderHistoryView() {
     historyViewEl.innerHTML = '';
 
-    var header = document.createElement('div');
-    header.className = 'planning-header';
-    header.innerHTML = '<div><p class="eyebrow">Balanço</p><h2>Histórico de compras</h2></div>';
-    historyViewEl.appendChild(header);
-
-    var backBtn = document.createElement('button');
-    backBtn.type = 'button';
-    backBtn.className = 'history-back';
-    backBtn.textContent = '← Início';
-    backBtn.addEventListener('click', closeHistory);
-    historyViewEl.appendChild(backBtn);
-
     if (!supabase) {
       var offlineMsg = document.createElement('div');
       offlineMsg.className = 'empty-state';
@@ -1902,13 +1985,33 @@
     if (el) el.textContent = n + (n === 1 ? ' selecionado' : ' selecionados');
   }
 
+  // Exclui de vez um item sem nome (na tela e na lista salva, mesmo sem tocar em "Enviar").
+  function deleteUnnamed(cat, idx) {
+    var item = planningDraft[cat][idx];
+    if (!item || String(item.name || '').trim()) return;
+    if (Number(item.price) > 0 &&
+        !window.confirm('Este item sem nome tem valor ' + formatBRL(Number(item.price)) + '. Excluir mesmo assim?')) return;
+    planningDraft[cat].splice(idx, 1);
+    var saved = state.itemsByCategory[cat] || [];
+    for (var i = 0; i < saved.length; i++) {
+      if (!String(saved[i].name || '').trim() && Number(saved[i].price || 0) === Number(item.price || 0)) {
+        saved.splice(i, 1);
+        scheduleSave();
+        break;
+      }
+    }
+    render();
+    renderPlanningView();
+    toast('Item sem nome excluído');
+  }
+
   function renderPlanningView() {
     planningViewEl.innerHTML = '';
 
     var header = document.createElement('div');
     header.className = 'planning-header';
     header.innerHTML =
-      '<div><p class="eyebrow">Planejar compra</p><h2>O que vai nessa lista?</h2></div>' +
+      '<div><h2>O que vai nessa lista?</h2></div>' +
       '<span class="planning-counter" id="planningCounter"></span>';
     planningViewEl.appendChild(header);
 
@@ -1939,6 +2042,19 @@
           planningDraft[cat][idx].included = e.target.checked;
           updatePlanningCounter();
         });
+        if (!String(item.name || '').trim()) {
+          // Item sem nome (criado por engano): dá para excluir ali mesmo.
+          var del = document.createElement('button');
+          del.type = 'button';
+          del.className = 'plan-del';
+          del.textContent = 'Excluir';
+          del.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            deleteUnnamed(cat, idx);
+          });
+          row.appendChild(del);
+        }
         list.appendChild(row);
       });
 
@@ -2076,8 +2192,28 @@
 
   // ---- Navegação da tela inicial e menu lateral ----
   document.getElementById('listBtn').addEventListener('click', function () { showView('shopping'); });
-  document.getElementById('homeSaldo').addEventListener('click', function () { showView('shopping'); });
-  document.getElementById('backFromList').addEventListener('click', function () { showView('home'); });
+  document.getElementById('brandLogo').addEventListener('click', function () {
+    if (currentView !== 'home') { planningDraft = null; showView('home'); }
+  });
+
+  // ---- Cadastro do saldo (popup na tela inicial) ----
+  var budgetModalEl = document.getElementById('budgetModal');
+  function openBudgetModal() {
+    budgetModalEl.hidden = false;
+    openLayer('budget');
+    budgetInput.value = state.budget && Number(state.budget) ? state.budget : '';
+    setTimeout(function () { budgetInput.focus(); }, 50);
+  }
+  function closeBudgetModal() { budgetInput.blur(); closeLayer(budgetModalEl); }
+  document.getElementById('homeSaldo').addEventListener('click', openBudgetModal);
+  document.getElementById('homeSaldo').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openBudgetModal(); }
+  });
+  document.getElementById('budgetOk').addEventListener('click', closeBudgetModal);
+  document.getElementById('budgetModalBg').addEventListener('click', closeBudgetModal);
+  budgetInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); closeBudgetModal(); }
+  });
 
   var drawerEl = document.getElementById('drawer');
   // Menu e popup também entram no histórico: "voltar" fecha o menu/popup primeiro.
